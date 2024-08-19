@@ -9,14 +9,18 @@ digraph = nx.DiGraph()
 digraph.add_nodes_from(nodes)
 digraph.add_edges_from(arcs)
 
-traders = [1]
-commodities = ["gas", "hydrogen"]
+# Objects
+traders = [Trader(1, "Trader 1")]
+gas = Commodity(1, "gas")
+hydrogen = Commodity(2, "hydrogen")
+commodities = [gas, hydrogen]
 
 # Parameters
 loss_rate = 0.2
-allowed_percentage = {node: 1 for node in nodes}
-probability4 = 1
+allowed_percentage = 1
 gamma = 0.25
+
+probability4 = 1
 
 # Arc costs and capacities
 arc_costs = {(arc, k): 10 for arc in arcs for k in commodities}
