@@ -76,10 +76,10 @@ fig.update_layout(
 
 pipeline_df = pd.read_excel("Data/Europe-Gas-Tracker-2024-05_REB.xlsx", sheet_name="Gas pipelines - data")
 
-pattern = '|'.join(pipelines)
+# pattern = '|'.join(pipelines)
 
-pipeline_df = pipeline_df[pipeline_df["PipelineName"].str.contains(pattern)]
-print(pipeline_df.shape)
+# pipeline_df = pipeline_df[pipeline_df["PipelineName"].str.contains(pattern)]
+# print(pipeline_df.shape)
 
 # Function to clean and parse WKT strings
 def clean_wkt_string(wkt_string):
