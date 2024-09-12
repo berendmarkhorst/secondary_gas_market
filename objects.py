@@ -90,8 +90,8 @@ class Problem:
         self.digraph = digraph
         self.nodes = list(digraph.nodes)
         self.arcs = list(digraph.edges)
-        self.incoming_arcs = {node: [arc for arc in self.arcs if arc[1] == node] for node in self.nodes}
-        self.outgoing_arcs = {node: [arc for arc in self.arcs if arc[0] == node] for node in self.nodes}
+        self.incoming_arcs = {digraph.nodes()[node]["ID"]: [arc for arc in self.arcs if arc[1] == node] for node in self.nodes}
+        self.outgoing_arcs = {digraph.nodes()[node]["ID"]: [arc for arc in self.arcs if arc[0] == node] for node in self.nodes}
         self.stages = stages
         self.stage_ids = [stage.stage_id for stage in self.stages]  # Starts at 1!
         self.stage_ids_star = self.stage_ids[1:]  # Without 1!
@@ -106,23 +106,24 @@ class Problem:
         self.commodities = commodities
         self.commodity_ids = [commodity.commodity_id for commodity in self.commodities]
         self.gamma = gamma
+        self.node_ids = [digraph.nodes()[node]["ID"] for node in digraph.nodes()]
 
     def build_model(self):
         model = gp.Model("Stochastic Secondary Energy Market")
 
         # Decision variables
-        x_plus = model.addVars(self.nodes, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_plus", lb=0.0)
-        x_minus = model.addVars(self.nodes, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_minus", lb=0.0)
-        y_plus = model.addVars(self.nodes, self.stage_ids, self.trader_ids, self.commodity_ids, name="y_plus", lb=0.0)
-        y_minus = model.addVars(self.nodes, self.stage_ids, self.trader_ids, self.commodity_ids, name="y_minus", lb=0.0)
-        s_plus = model.addVars(self.nodes, self.stage_ids, self.commodity_ids, name="s_plus", lb=0.0)
-        s_minus = model.addVars(self.nodes, self.stage_ids, self.commodity_ids, name="s_minus", lb=0.0)
+        x_plus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_plus", lb=0.0)
+        x_minus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_minus", lb=0.0)
+        y_plus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="y_plus", lb=0.0)
+        y_minus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="y_minus", lb=0.0)
+        s_plus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_plus", lb=0.0)
+        s_minus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_minus", lb=0.0)
         f = model.addVars(self.trader_ids, self.arcs, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)
-        q_sales = model.addVars(self.trader_ids, self.nodes, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, name="q_sales", lb=0.0)
-        q_production = model.addVars(self.trader_ids, self.nodes, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
-        v = model.addVars(self.trader_ids, self.nodes, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
-        w_plus = model.addVars(self.trader_ids, self.nodes, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
-        w_minus = model.addVars(self.trader_ids, self.nodes, self.third_stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
+        q_sales = model.addVars(self.trader_ids, self.node_ids, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, name="q_sales", lb=0.0)
+        q_production = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
+        v = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
+        w_plus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
+        w_minus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
 
         # Objective function
         objective = 0
