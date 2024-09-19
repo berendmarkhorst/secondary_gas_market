@@ -4,7 +4,7 @@ from objects import *
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 
-input_file = "Data/FodstadDataSmall.xlsx"
+input_file = "Data/FodstadData.xlsx"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -29,8 +29,8 @@ nr_shippers = int(parameters_df[parameters_df["Name"] == "Number shippers"]["Val
 nodes = []
 fuel_cols = []
 for fuel in column_fuels:
-    fuel_cols += [f"Production Capacity {fuel}", f"Production Costs {fuel}", f"Storage Capacity {fuel}",
-           f"Entry Capacity {fuel}", f"Exit Capacity {fuel}", f"Entry Storage Costs {fuel}", f"Entry Costs {fuel} Stage 1",
+    fuel_cols += [f"TSO entry costs {fuel}", f"TSO exit costs {fuel}", f"Production Costs {fuel}", f"Storage Capacity {fuel}",
+           f"Production Capacity {fuel}", f"Entry Storage Costs {fuel}", f"Entry Costs {fuel} Stage 1",
            f"Exit Costs {fuel} Stage 1", f"Entry Costs {fuel} Stage 2", f"Exit Costs {fuel} Stage 2",
            f"Entry Costs {fuel} Stage 3", f"Exit Costs {fuel} Stage 3"]
 
@@ -69,13 +69,13 @@ exit_costs3 = {(node, fuel.lower()): digraph.nodes()[node][f"Exit Costs {fuel} S
 production_costs = {(t, node, fuel.lower()): digraph.nodes()[node][f"Production Costs {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
 production_capacities = {(t, node, fuel.lower()): digraph.nodes()[node][f"Production Capacity {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
 
+# TSO entry and exit costs
+tso_entry_costs = {(node, fuel.lower()): digraph.nodes()[node][f"TSO entry costs {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
+tso_exit_costs = {(node, fuel.lower()): digraph.nodes()[node][f"TSO exit costs {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
+
 # Storage costs and capacities
 storage_costs = {(t, node, fuel.lower()): digraph.nodes()[node][f"Entry Storage Costs {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
 storage_capacities = {(t, node, fuel.lower()): digraph.nodes()[node][f"Storage Capacity {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
-
-# Entry and exit capacities
-entry_capacity = {(node, fuel.lower()): digraph.nodes()[node][f"Entry Capacity {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
-exit_capacity = {(node, fuel.lower()): digraph.nodes()[node][f"Exit Capacity {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
 
 # Node demands
 def get_node_demands(sheet_name, skiprows, nr_stage_nodes):
@@ -162,15 +162,15 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
 
             production_costs_temp = {(t, k): production_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
-            production_capacity_temp = {(t, k): production_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
+            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
+            tso_entry_costs_temp = {k: tso_entry_costs[node, k.name] for k in commodities}
+            tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
             storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
             storage_capacity_temp = {(t, k): storage_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
-            entry_capacity_temp = {k: entry_capacity[node, k.name] for k in commodities }
-            exit_capacity_temp = {k: exit_capacity[node, k.name] for k in commodities }
             allowed_percentage_temp = allowed_percentage
 
-            stage_node = StageNode(node_id, name, node_demands_temp, production_costs_temp, production_capacity_temp,
-                                   storage_costs_temp, storage_capacity_temp, entry_capacity_temp, exit_capacity_temp,
+            stage_node = StageNode(node_id, name, node_demands_temp, production_costs_temp, production_capacities_temp, tso_entry_costs_temp, tso_exit_costs_temp,
+                                   storage_costs_temp, storage_capacity_temp,
                                    entry_costs_temp, exit_costs_temp, allowed_percentage_temp)
             stage_nodes.append(stage_node)
 
@@ -179,20 +179,20 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 parent = stages[-1]
             else:
                 parent = None
-            stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, None)
+            stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, None, hour_id)
         elif stage_id <= nr_stage2_nodes + 1:
             if hour_id > 1:
                 parent = stages[-1]
             else:
                 parent = stages[0]
-            stage = Stage(id, "day ahead", probabilities2[stage_id-2], stage_nodes, stage_arcs, parent)
+            stage = Stage(id, "day ahead", probabilities2[stage_id-2], stage_nodes, stage_arcs, parent, hour_id)
         else:
             if hour_id > 1:
                 parent = stages[-1]
             else:
                 parent_id = parents3[stage_id - nr_stage2_nodes - 2]
                 parent = [stage for stage in stages if stage.stage_id == parent_id][0]
-            stage = Stage(id, "intra day", probabilities3[stage_id - nr_stage2_nodes - 2], stage_nodes, stage_arcs, parent)
+            stage = Stage(id, "intra day", probabilities3[stage_id - nr_stage2_nodes - 2], stage_nodes, stage_arcs, parent, hour_id)
 
         stages.append(stage)
 
@@ -236,10 +236,9 @@ for m in problem.third_stages:
 
 # Plot booked capacity values
 for t in problem.traders:
-    # break
     for m in problem.third_stages:
         # Only print the last hours of each stage.
-        if len(m.all_parents) == 2 + nr_hours - 1:
+        if m.hour == nr_hours: #len(m.all_parents) == 2 + nr_hours - 1:
             booked_capacity = {}
             parents = m.all_parents + [m]
             parents = sorted(parents, key=lambda x: x.stage_id)
@@ -248,9 +247,6 @@ for t in problem.traders:
                 x_minus = sum(model.getVarByName(f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
                 y_plus = sum(model.getVarByName(f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
                 y_minus = sum(model.getVarByName(f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
-
-                if m.stage_id == 4:
-                    print(f"Scenario node {p.stage_id}: x_plus = {x_plus}, x_minus = {x_minus}, y_plus = {y_plus}, y_minus = {y_minus}")
 
                 if p.parent is not None:
                     previous = booked_capacity[f"Scenario node {p.parent.stage_id}"]
@@ -298,7 +294,7 @@ for m in problem.third_stages:
 
             # Plot the edge
             plt.plot([source_x, sink_x], [source_y, sink_y],
-                     linewidth=total_flow/50, color='black', zorder=1)  # Line width corresponds to the total flow
+                     linewidth=total_flow/25, color='black', zorder=1)  # Line width corresponds to the total flow
 
             # Annotate the edge name at the midpoint
             mid_x = (source_x + sink_x) / 2
@@ -312,6 +308,7 @@ for m in problem.third_stages:
 
 # Storage values
 for m in problem.third_stages:
+    break
     storage = {}
     for n in m.nodes:
         storage[n] = sum(model.getVarByName(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]").X for t in problem.traders for k in problem.commodities)

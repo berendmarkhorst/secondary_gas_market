@@ -18,21 +18,21 @@ class Trader:
 class StageNode:
     def __init__(self, node_id: int, name: str,
                  node_demands: Dict[Commodity, float], production_costs: Dict[Tuple[Trader, Commodity], float],
-                 production_capacity: Dict[Tuple[Trader, Commodity], float],
+                 production_capacities: Dict[Tuple[Trader, Commodity], float],
+                 tso_entry_costs: Dict[Commodity, float], tso_exit_costs: Dict[Commodity, float],
                  storage_costs: Dict[Tuple[Trader, Commodity], float],
                  storage_capacity: Dict[Tuple[Trader, Commodity], float],
-                 entry_capacity: Dict[Commodity, float], exit_capacity: Dict[Commodity, float],
                  entry_costs: Dict[Tuple[Trader, Commodity], float], exit_costs: Dict[Tuple[Trader, Commodity], float],
                  allowed_percentage: float):
         self.node_id = node_id
         self.name = name
         self.node_demands = node_demands
         self.production_costs = production_costs
-        self.production_capacity = production_capacity
+        self.production_capacity = production_capacities
+        self.tso_entry_costs = tso_entry_costs
+        self.tso_exit_costs = tso_exit_costs
         self.storage_costs = storage_costs
         self.storage_capacity = storage_capacity
-        self.entry_capacity = entry_capacity
-        self.exit_capacity = exit_capacity
         self.entry_costs = entry_costs
         self.exit_costs = exit_costs
         self.allowed_percentage = allowed_percentage
@@ -56,7 +56,7 @@ class StageArc:
 
 class Stage:
     def __init__(self, stage_id: int, name: str, probability: float, nodes: List[StageNode], arcs: List[StageArc],
-                 parent: 'Stage'):
+                 parent: 'Stage', hour: int):
         self.stage_id = stage_id
         self.name = name
         self.probability = probability
@@ -65,6 +65,7 @@ class Stage:
         self.parent = parent
         self.all_parents = self.get_all_parents()
         self.ids_all_parents = self.get_ids_all_parents()
+        self.hour = hour
 
     def __repr__(self):
         return f"Stage {self.stage_id}"
@@ -135,6 +136,8 @@ class Problem:
         W = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="W", lb=0.0)
         surplus_entry = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="surplus_entry", lb=0.0)
         surplus_exit = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="surplus_exit", lb=0.0)
+        entry_capacity = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="entry_capacity", lb=0)
+        exit_capacity = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="exit_capacity", lb=0)
 
         # Objective function
         objective = 0
@@ -144,9 +147,11 @@ class Problem:
             for t in self.traders:
                 for k in self.commodities:
                     for n in m.nodes:
-                        entry_costs = x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.entry_costs[(t, k)]
-                        exit_costs = x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.exit_costs[(t, k)]
-                        objective += self.stages[m.stage_id-1].probability * (entry_costs + exit_costs)
+                        supplier_entry_costs = x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.entry_costs[(t, k)]
+                        supplier_exit_costs = x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.exit_costs[(t, k)]
+                        tso_entry_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_entry_costs[k]
+                        tso_exit_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_exit_costs[k]
+                        objective += self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs + tso_entry_costs + tso_exit_costs)
 
                         if m.name == "intra day":
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
@@ -176,31 +181,31 @@ class Problem:
                                 name=f"eq1b[{m.stage_id},{a}]")
 
         # Equation 1c
-        for m in self.stages:
+        for m in self.second_stages + self.third_stages:
             for n in m.nodes:
                 for k in self.commodities:
-                    model.addConstr(s_minus[n.node_id, m.stage_id, k.commodity_id] <= n.exit_capacity[k] - gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
+                    model.addConstr(s_minus[n.node_id, m.stage_id, k.commodity_id] <= exit_capacity[n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
                                     name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
         # Equation 1d
-        for m in self.stages:
+        for m in self.second_stages + self.third_stages:
             for n in m.nodes:
                 for k in self.commodities:
-                    model.addConstr(s_plus[n.node_id, m.stage_id, k.commodity_id] <= n.entry_capacity[k] - gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
+                    model.addConstr(s_plus[n.node_id, m.stage_id, k.commodity_id] <= entry_capacity[n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
                                     name=f"eq1d[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
         # Equation 1e
         for n in self.stages[0].nodes:
             for k in self.commodities:
                 lhs = s_minus[n.node_id, 1, k.commodity_id]
-                rhs = n.allowed_percentage * n.exit_capacity[k]
+                rhs = n.allowed_percentage * exit_capacity[n.node_id, m.stage_id, k.commodity_id]
                 model.addConstr(lhs <= rhs, name=f"eq1e[{n.node_id},{k.commodity_id}]")
 
         # Equation 1f
         for n in self.stages[0].nodes:
             for k in self.commodities:
                 lhs = s_plus[n.node_id, 1, k.commodity_id]
-                rhs = n.allowed_percentage * n.entry_capacity[k]
+                rhs = n.allowed_percentage * entry_capacity[n.node_id, m.stage_id, k.commodity_id]
                 model.addConstr(lhs <= rhs, name=f"eq1f[{n.node_id},{k.commodity_id}]")
 
         # Equation 1g
