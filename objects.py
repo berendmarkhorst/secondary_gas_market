@@ -1,6 +1,8 @@
 import networkx as nx
 import gurobipy as gp
+from gurobipy import GRB
 from typing import List, Dict, Tuple
+import json
 
 
 class Commodity:
@@ -23,7 +25,7 @@ class StageNode:
                  storage_costs: Dict[Tuple[Trader, Commodity], float],
                  storage_capacity: Dict[Tuple[Trader, Commodity], float],
                  entry_costs: Dict[Tuple[Trader, Commodity], float], exit_costs: Dict[Tuple[Trader, Commodity], float],
-                 allowed_percentage: float):
+                 allowed_percentage: float, sales_prices: Dict[Tuple[Trader, str], float]):
         self.node_id = node_id
         self.name = name
         self.node_demands = node_demands
@@ -36,6 +38,7 @@ class StageNode:
         self.entry_costs = entry_costs
         self.exit_costs = exit_costs
         self.allowed_percentage = allowed_percentage
+        self.sales_prices = sales_prices
 
     def __repr__(self):
         return f"Node {self.node_id}"
@@ -119,6 +122,10 @@ class Problem:
     def build_model(self):
         model = gp.Model("Stochastic Secondary Energy Market")
 
+        model.setParam(GRB.Param.MIPFocus, 1)  # Prioritize feasible solutions quickly
+        model.setParam(GRB.Param.Heuristics, 0.5)  # Set to a higher value for more heuristic effort
+        model.setParam("ImproveStartGap", 0.05)  # Set to 5% gap for example
+
         # Decision variables
         x_plus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_plus", lb=0.0)
         x_minus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="x_minus", lb=0.0)
@@ -144,26 +151,27 @@ class Problem:
 
         # First part of the objective
         for m in self.stages:
-            for t in self.traders:
-                for k in self.commodities:
-                    for n in m.nodes:
+            for k in self.commodities:
+                for n in m.nodes:
+                    tso_entry_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_entry_costs[k]
+                    tso_exit_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_exit_costs[k]
+
+                    objective -= self.stages[m.stage_id - 1].probability * (tso_entry_costs + tso_exit_costs)
+
+                    for t in self.traders:
                         supplier_entry_costs = x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.entry_costs[(t, k)]
                         supplier_exit_costs = x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.exit_costs[(t, k)]
-                        tso_entry_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_entry_costs[k]
-                        tso_exit_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_exit_costs[k]
-                        objective += self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs + tso_entry_costs + tso_exit_costs)
+                        objective -= self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs)
 
                         if m.name == "intra day":
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
                             storage_costs = v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
                             flow_costs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
+                            sales = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] * n.sales_prices[t, d] for d in self.d_dict[k])
 
-                            # surplus_entry = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m])
-                            # surplus_exit = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) - gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m])
+                            objective += self.stages[m.stage_id - 1].probability * (sales - production_costs - storage_costs - flow_costs - (surplus_entry[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + surplus_exit[t.trader_id, n.node_id, m.stage_id, k.commodity_id]) * 100000)
 
-                            objective += self.stages[m.stage_id - 1].probability * (production_costs + storage_costs + flow_costs + (surplus_entry[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + surplus_exit[t.trader_id, n.node_id, m.stage_id, k.commodity_id]) * 100000)
-
-        model.setObjective(objective, gp.GRB.MINIMIZE)
+        model.setObjective(objective, gp.GRB.MAXIMIZE)
 
         # NEW CONSTRAINT
         for m in self.third_stages:
@@ -177,7 +185,7 @@ class Problem:
         # Equation 1b
         for m in self.third_stages:
             for a in self.arcs:
-                model.addConstr(gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= self.stages[m.stage_id-1].get_arc(a).arc_capacity,
+                model.addConstr(gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * self.stages[m.stage_id-1].get_arc(a).arc_capacity,
                                 name=f"eq1b[{m.stage_id},{a}]")
 
         # Equation 1c
@@ -198,14 +206,14 @@ class Problem:
         for n in self.stages[0].nodes:
             for k in self.commodities:
                 lhs = s_minus[n.node_id, 1, k.commodity_id]
-                rhs = n.allowed_percentage * exit_capacity[n.node_id, m.stage_id, k.commodity_id]
+                rhs = exit_capacity[n.node_id, m.stage_id, k.commodity_id]
                 model.addConstr(lhs <= rhs, name=f"eq1e[{n.node_id},{k.commodity_id}]")
 
         # Equation 1f
         for n in self.stages[0].nodes:
             for k in self.commodities:
                 lhs = s_plus[n.node_id, 1, k.commodity_id]
-                rhs = n.allowed_percentage * entry_capacity[n.node_id, m.stage_id, k.commodity_id]
+                rhs = entry_capacity[n.node_id, m.stage_id, k.commodity_id]
                 model.addConstr(lhs <= rhs, name=f"eq1f[{n.node_id},{k.commodity_id}]")
 
         # Equation 1g
@@ -362,5 +370,12 @@ class Problem:
 
         return model
 
+    def save_solution(self, model, output_file: str):
+        solution = {}
+        for var in model.getVars():
+            if var.x > 0:
+                solution[var.varName] = var.x
 
-
+        # Store dictionary in a file
+        with open(output_file, "w") as file:
+            json.dump(solution, file)

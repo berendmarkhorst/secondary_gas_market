@@ -3,8 +3,10 @@ import networkx as nx
 from objects import *
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
+import pickle
 
 input_file = "Data/FodstadData.xlsx"
+output_file = "Results/result1"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -14,6 +16,9 @@ probability2_df = pd.read_excel(input_file, sheet_name="Demand Stage 2", skiprow
 probability3_df = pd.read_excel(input_file, sheet_name="Demand Stage 3", skiprows=0, nrows=1)
 parent3_df = pd.read_excel(input_file, sheet_name="Demand Stage 3", skiprows=1, nrows=1)
 parameters_df = pd.read_excel(input_file, sheet_name="Parameters")
+gas_sales_df = pd.read_excel(input_file, sheet_name="SalesPriceGasMix")
+hydrogen_sales_df = pd.read_excel(input_file, sheet_name="SalesPricePureHydrogen")
+shipper_df = pd.read_excel(input_file, sheet_name="Traders")
 
 # Parameters
 nr_stage2_nodes = int(parameters_df[parameters_df["Name"] == "Stage 2 nodes"]["Value"].values[0])
@@ -120,8 +125,10 @@ probabilities3 = [float(p) for p in probability3_df.iloc[0][1:] if is_float(p)]
 parents3 = [float(p)for p in parent3_df.iloc[0][1:] if is_float(p)]
 
 # Objects
-t1 = Trader(1, "Trader 1")
-traders = [t1]
+traders = []
+for trader_idx, trader_name in enumerate(shipper_df.columns):
+    t = Trader(trader_idx + 1, trader_name)
+    traders.append(t)
 gas = Commodity(1, "gas")
 hydrogen = Commodity(2, "hydrogen")
 commodities = [gas, hydrogen]
@@ -162,16 +169,52 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
 
             production_costs_temp = {(t, k): production_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
-            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
+            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] * int(name in shipper_df[t.name].values) for k in commodities for t in traders}
             tso_entry_costs_temp = {k: tso_entry_costs[node, k.name] for k in commodities}
             tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
             storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
             storage_capacity_temp = {(t, k): storage_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
             allowed_percentage_temp = allowed_percentage
 
+            sales_prices = {}
+            for t in traders:
+                if stage_id <= nr_stage2_nodes + 1:
+                    sales_prices = None
+                    continue
+                elif name == "Germany":
+                    if (stage_id - nr_stage2_nodes) % 4 == 0:
+                        extra = 3
+                    elif (stage_id - nr_stage2_nodes) % 4 == 1:
+                        extra = 3
+                    elif (stage_id - nr_stage2_nodes) % 4 == 2:
+                        extra = -3
+                    elif (stage_id - nr_stage2_nodes) % 4 == 3:
+                        extra = -3
+                elif name == "Zeebrugge":
+                    if (stage_id - nr_stage2_nodes) % 4 == 0:
+                        extra = 2
+                    elif (stage_id - nr_stage2_nodes) % 4 == 1:
+                        extra = -2
+                    elif (stage_id - nr_stage2_nodes) % 4 == 2:
+                        extra = 2
+                    elif (stage_id - nr_stage2_nodes) % 4 == 3:
+                        extra = -2
+                else:
+                    extra = 0
+
+                if name in gas_sales_df.columns:
+                    sales_prices[(t, "gas_or_mix")] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] + extra
+                else:
+                    sales_prices[(t, "gas_or_mix")] = 0
+
+                if name in hydrogen_sales_df.columns:
+                    sales_prices[(t, "pure_hydrogen")] = hydrogen_sales_df[hydrogen_sales_df["Hour"] == hour_id][node].values[0] + extra
+                else:
+                    sales_prices[(t, "pure_hydrogen")] = 0
+
             stage_node = StageNode(node_id, name, node_demands_temp, production_costs_temp, production_capacities_temp, tso_entry_costs_temp, tso_exit_costs_temp,
                                    storage_costs_temp, storage_capacity_temp,
-                                   entry_costs_temp, exit_costs_temp, allowed_percentage_temp)
+                                   entry_costs_temp, exit_costs_temp, allowed_percentage_temp, sales_prices)
             stage_nodes.append(stage_node)
 
         if stage_id == 1:
@@ -179,7 +222,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 parent = stages[-1]
             else:
                 parent = None
-            stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, None, hour_id)
+            stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, parent, hour_id)
         elif stage_id <= nr_stage2_nodes + 1:
             if hour_id > 1:
                 parent = stages[-1]
@@ -199,118 +242,17 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
 # Problem object
 problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict)
 
-model = problem.build_model()
-model.optimize()
+# Store problem object
+with open(f"{output_file}.pkl", "wb") as file:
+    pickle.dump(problem, file)
 
-# Plot production values
-for m in problem.third_stages:
-    break
-    production = {k.name: {} for k in problem.commodities}
-    for n in m.nodes:
-        if digraph.nodes()[n.name]['Type'] == "Field":
-            for k in problem.commodities:
-                production[k.name][n.name] = sum(model.getVarByName(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]").X for t in problem.traders)
+# Print how many nodes and edges the graph has
+print("Number of nodes:", digraph.number_of_nodes())
+print("Number of edges:", digraph.number_of_edges())
 
-    # Prepare data for plotting
-    nodes = list(production['gas'].keys())  # ['Node 1', 'Node 3']
-    gas_values = list(production['gas'].values())  # [5.0, 5.0]
-    hydrogen_values = list(production['hydrogen'].values())  # [0.0, 0.0]
+# Print how many scenario nodes the problem has
+print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    # Plotting
-    x = range(len(nodes))
-    width = 0.35  # Width of the bars
-
-    fig, ax = plt.subplots()
-    ax.bar(x, gas_values, width, label='Gas')
-    ax.bar([i + width for i in x], hydrogen_values, width, label='Hydrogen')
-
-    # Add labels and title
-    ax.set_xlabel('Locations')
-    ax.set_xticks([i + width / 2 for i in x])
-    ax.set_xticklabels(nodes, rotation=45)
-    ax.set_ylabel('Values')
-    ax.set_title(f'Production in scenario node {m.stage_id}')
-    ax.legend()
-
-    plt.show()
-
-# Plot booked capacity values
-for t in problem.traders:
-    for m in problem.third_stages:
-        # Only print the last hours of each stage.
-        if m.hour == nr_hours: #len(m.all_parents) == 2 + nr_hours - 1:
-            booked_capacity = {}
-            parents = m.all_parents + [m]
-            parents = sorted(parents, key=lambda x: x.stage_id)
-            for p in parents:
-                x_plus = sum(model.getVarByName(f"x_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
-                x_minus = sum(model.getVarByName(f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
-                y_plus = sum(model.getVarByName(f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
-                y_minus = sum(model.getVarByName(f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]").X for n in p.nodes for k in problem.commodities)
-
-                if p.parent is not None:
-                    previous = booked_capacity[f"Scenario node {p.parent.stage_id}"]
-                else:
-                    previous = 0
-
-                booked_capacity[f"Scenario node {p.stage_id}"] = x_plus - y_plus + previous
-
-            plt.bar(booked_capacity.keys(), booked_capacity.values())
-            plt.title(f'Booked capacity for trader {t.trader_id}')
-            plt.show()
-
-
-# Plot flow values
-for m in problem.third_stages:
-    break
-    flows = {}
-    for a in m.arcs:
-        flows[(a.source, a.sink)] = {"Source": a.source, "Sink": a.sink, "Name": a.name}
-        for k in problem.commodities:
-            flows[(a.source, a.sink)][k.name] = sum(model.getVarByName(f"f[{t.trader_id},{a.source},{a.sink},{m.stage_id},{k.commodity_id}]").X for t in problem.traders)
-
-    # Initialize the plot
-    plt.figure(figsize=(8, 6))
-
-    # Plot nodes and annotate with names
-    for node in digraph.nodes():
-        x = digraph.nodes()[node]['X_coordinate']
-        y = digraph.nodes()[node]['Y_coordinate']
-        plt.scatter(x, y, s=100, color='blue', zorder=4)  # Plot the node
-        plt.text(x, y, node, fontsize=12, ha='right', color='black', zorder=3)  # Annotate the node name
-
-    # Plot edges, with line width corresponding to the sum of flows, and annotate the edge names
-    for data in flows.values():
-        edge_name = data['Name']
-        # Calculate the total flow and filter based on threshold
-        total_flow = data['gas'] + data['hydrogen']
-        if total_flow > 0.0001:  # Only plot edges with total flow > 0.01
-            source = data['Source']
-            sink = data['Sink']
-            source_x = digraph.nodes()[source]['X_coordinate']
-            source_y = digraph.nodes()[source]['Y_coordinate']
-            sink_x = digraph.nodes()[sink]['X_coordinate']
-            sink_y = digraph.nodes()[sink]['Y_coordinate']
-
-            # Plot the edge
-            plt.plot([source_x, sink_x], [source_y, sink_y],
-                     linewidth=total_flow/25, color='black', zorder=1)  # Line width corresponds to the total flow
-
-            # Annotate the edge name at the midpoint
-            mid_x = (source_x + sink_x) / 2
-            mid_y = (source_y + sink_y) / 2
-            plt.text(mid_x, mid_y, edge_name, fontsize=12, color='gray', ha='center', zorder=2)
-
-    # Show the plot
-    plt.title(f'Network flows at scenario node {m.stage_id}')
-    plt.axis('off')
-    plt.show()
-
-# Storage values
-for m in problem.third_stages:
-    break
-    storage = {}
-    for n in m.nodes:
-        storage[n] = sum(model.getVarByName(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]").X for t in problem.traders for k in problem.commodities)
-
-    print(storage)
+# model = problem.build_model()
+# model.optimize()
+# problem.save_solution(model, f"{output_file}.json")

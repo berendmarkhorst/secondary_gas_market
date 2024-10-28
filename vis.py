@@ -113,6 +113,8 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
     # Add title
     fig.update_layout(title_text='Pipeline and Facilities Visualization')
 
+    fig.write_html("network_visualization.html")
+
     fig.show()
 
     return fig

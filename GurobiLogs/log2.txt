@@ -1,0 +1,107 @@
+Number of nodes: 18
+Number of edges: 46
+Number of scenario nodes: 84
+Set parameter Username
+Academic license - for non-commercial use only - expires 2025-02-04
+Set parameter MIPFocus to value 1
+Set parameter Heuristics to value 0.5
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 69032 rows, 96448 columns and 435760 nonzeros
+Model fingerprint: 0xd9252a9a
+Model has 2944 quadratic constraints
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+00]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [3e-02, 1e+04]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+01, 1e+03]
+Presolve removed 39292 rows and 45988 columns
+
+Continuous model is non-convex -- solving as a MIP
+
+Presolve removed 52036 rows and 68228 columns
+Presolve time: 0.82s
+Presolved: 497124 rows, 147517 columns, 1117994 nonzeros
+Presolved model has 119296 bilinear constraint(s)
+Warning: Model contains variables with very large bounds participating
+         in product terms.
+         Presolve was not able to compute smaller bounds for these variables.
+         Consider bounding these variables or reformulating the model.
+
+Variable types: 147517 continuous, 0 integer (0 binary)
+
+Deterministic concurrent LP optimizer: primal simplex, dual simplex, and barrier
+Showing barrier log only...
+
+Root barrier log...
+
+Elapsed ordering time = 5s
+Ordering time: 9.76s
+
+Barrier statistics:
+ AA' NZ     : 5.088e+06
+ Factor NZ  : 4.206e+07 (roughly 500 MB of memory)
+ Factor Ops : 1.300e+10 (roughly 1 second per iteration)
+ Threads    : 2
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -8.23677077e+07  3.87584568e+09  1.38e+05 5.00e+00  4.59e+05    58s
+   1  -6.57282490e+07  4.15543932e+09  7.53e+04 1.53e+01  2.50e+05    60s
+   2  -5.55771449e+07  3.69718004e+09  3.15e+04 4.42e+00  1.19e+05    62s
+   3  -2.53137831e+07  2.77610753e+09  6.61e+02 1.31e+00  1.22e+04    64s
+   4  -1.44128587e+07  6.23039072e+08  9.52e+01 6.91e-12  2.02e+03    67s
+
+Barrier performed 4 iterations in 66.51 seconds (15.98 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+Concurrent spin time: 6.71s (can be avoided by choosing Method=3)
+
+Solved with primal simplex
+
+Root relaxation: objective 1.235612e+04, 33487 iterations, 27.70 seconds (9.79 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 12356.1167    0  344          - 12356.1167      -     -   70s
+     0     0 12356.1167    0  409          - 12356.1167      -     -   72s
+     0     0 12356.1167    0  409          - 12356.1167      -     -   74s
+     0     0 12356.1167    0  409          - 12356.1167      -     -   79s
+H    0     0                    12306.064606 12356.1167  0.41%     -  465s
+H    0     0                    12348.816667 12356.1167  0.06%     -  481s
+     0     2 12356.1167    0  409 12348.8167 12356.1167  0.06%     -  503s
+     1     4 12356.1167    1  409 12348.8167 12356.1167  0.06%   0.0  531s
+     3     8 12356.1167    2  409 12348.8167 12356.1167  0.06%  87.0  728s
+     7    12 12356.1167    3  409 12348.8167 12356.1167  0.06%   178  732s
+    11    14 12353.2518    3  417 12348.8167 12356.1167  0.06%   129  757s
+    15    18 12352.5020    4  419 12348.8167 12356.1167  0.06%   136  773s
+    19    20 12356.1167    4  409 12348.8167 12356.1167  0.06%   108  796s
+    23    25 12356.1167    5  409 12348.8167 12356.1167  0.06%   899  826s
+    28    27 12356.1103    6  415 12348.8167 12356.1167  0.06%   749  842s
+    32    29 12356.1167    6  409 12348.8167 12356.1167  0.06%   663  970s
+    36    34 12355.7562    7  414 12348.8167 12356.1167  0.06%   603  975s
+    43    37 12356.1167    7  407 12348.8167 12356.1167  0.06%   509  980s
+    48    43 12356.1167    8  405 12348.8167 12356.1167  0.06%   458 1004s
+    54    51 12353.3670    9  410 12348.8167 12356.1167  0.06%   414 1039s
+    62    53 12356.1167   10  403 12348.8167 12356.1167  0.06%   364 1057s
+    68    59 12356.1167   11  401 12348.8167 12356.1167  0.06%   339 1065s
+    76    64 12356.1167   12  399 12348.8167 12356.1167  0.06%   308 1084s
+    83    76 12355.7271   13  410 12348.8167 12356.1167  0.06%   289 1125s
+    97    86 12356.1167   14  399 12348.8167 12356.1167  0.06%   256 1183s
+H  105    86                    12349.516030 12356.1167  0.05%   247 1183s
+   109   100 12356.1167   15  399 12349.5160 12356.1167  0.05%   242 1217s
+   131   116 12353.4666   17  408 12349.5160 12356.1167  0.05%   207 1260s
+   151   145 12353.3647   20  406 12349.5160 12356.1167  0.05%   194 1317s
+   180   168 12356.1167   23  395 12349.5160 12356.1167  0.05%   171 1435s
+   215   217 12356.1167   28  396 12349.5160 12356.1167  0.05%   157 1489s
+   270   269 12356.1167   34  388 12349.5160 12356.1167  0.05%   135 1695s
+   322   345 12356.1167   40  386 12349.5160 12356.1167  0.05%   120 1922s
+   430   503 12356.1167   54  384 12349.5160 12356.1167  0.05%   104 2344s
+   551   503 12355.1042   47  397 12349.5160 12356.1167  0.05%  88.5 2345s
+   592   685 12350.6127   74  376 12349.5160 12356.1167  0.05%  84.6 2717s
+H  649   685                    12349.516667 12356.1167  0.05%  81.4 2717s
