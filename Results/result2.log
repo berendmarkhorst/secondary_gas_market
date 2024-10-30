@@ -1,0 +1,145 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Wed Oct 30 17:15:27 2024
+
+Set parameter LogFile to value "Results/result2.log"
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 56712 rows, 88880 columns and 261992 nonzeros
+Model fingerprint: 0xabbc8c05
+Model has 2944 quadratic constraints
+Variable types: 85936 continuous, 2944 integer (2944 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  QMatrix range    [1e+00, 1e+00]
+  Objective range  [9e-03, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+01, 1e+06]
+Presolve removed 37432 rows and 58109 columns
+Presolve time: 0.63s
+Presolved: 499408 rows, 150068 columns, 1120752 nonzeros
+Presolved model has 119296 bilinear constraint(s)
+Warning: Model contains variables with very large bounds participating
+         in product terms.
+         Presolve was not able to compute smaller bounds for these variables.
+         Consider bounding these variables or reformulating the model.
+
+
+Solving non-convex MIQCP
+
+Variable types: 147252 continuous, 2816 integer (2816 binary)
+
+Deterministic concurrent LP optimizer: primal simplex, dual simplex, and barrier
+Showing barrier log only...
+
+Root barrier log...
+
+Elapsed ordering time = 5s
+Ordering time: 6.36s
+
+Barrier statistics:
+ AA' NZ     : 5.237e+06
+ Factor NZ  : 4.200e+07 (roughly 500 MB of memory)
+ Factor Ops : 1.269e+10 (less than 1 second per iteration)
+ Threads    : 2
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -1.70308407e+08  1.96960250e+09  1.75e+05 6.92e-01  3.56e+05    39s
+
+Barrier performed 0 iterations in 39.20 seconds (10.17 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+Concurrent spin time: 3.39s (can be avoided by choosing Method=3)
+
+Solved with dual simplex
+
+Root relaxation: objective 2.056034e+04, 17236 iterations, 10.22 seconds (2.91 work units)
+Total elapsed time = 40.01s (DegenMoves)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20560.3417    0  352          - 20560.3417      -     -   41s
+     0     0 20547.5726    0  389          - 20547.5726      -     -   44s
+     0     0 20525.7879    0  388          - 20525.7879      -     -   48s
+     0     0 20524.2342    0  393          - 20524.2342      -     -   49s
+     0     0 20523.3556    0  438          - 20523.3556      -     -   52s
+     0     0 20522.7112    0  436          - 20522.7112      -     -   53s
+     0     0 20522.7112    0  465          - 20522.7112      -     -   55s
+     0     0 20522.7112    0  460          - 20522.7112      -     -   57s
+     0     0 20522.7112    0  463          - 20522.7112      -     -   58s
+     0     0 20522.4353    0  463          - 20522.4353      -     -   63s
+     0     2 20522.4353    0  463          - 20522.4353      -     -  271s
+     1     4 20521.4631    1  457          - 20521.4631      -   211  289s
+     3     8 20520.0667    2  452          - 20521.3938      -   166  311s
+    11    16 20515.3457    4  444          - 20519.9502      -   236  316s
+    27    32 20513.9687    8  431          - 20519.9502      -   153  320s
+    47    52 20511.8098   13  414          - 20519.9502      -  98.5  326s
+    59    65 20511.6548   16  346          - 20519.9502      -  86.7  330s
+    71    77 20511.6548   19  343          - 20519.9502      -  75.4  842s
+    76    83 20511.6548   20  343          - 20519.9502      -  70.9  850s
+
+Cutting planes:
+  Gomory: 32
+  MIR: 181
+  RLT: 114
+
+Explored 82 nodes (24098 simplex iterations) in 850.58 seconds (329.40 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 0
+
+Solve interrupted
+Best objective -, best bound 2.051995016779e+04, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Wed Oct 30 17:46:37 2024
+
+Set parameter LogFile to value "Results/result2.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 56712 rows, 88880 columns and 261992 nonzeros
+Model fingerprint: 0xcbc6247d
+Variable types: 85936 continuous, 2944 integer (2944 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [9e-03, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+01, 1e+06]
+Presolve removed 41784 rows and 68973 columns
+Presolve time: 0.72s
+Presolved: 14928 rows, 19907 columns, 71032 nonzeros
+Variable types: 17155 continuous, 2752 integer (2752 binary)
+
+Root relaxation: objective 2.056034e+04, 10749 iterations, 0.76 seconds (0.24 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 20560.3417    0   64          - 20560.3417      -     -    1s
+H    0     0                    20490.713333 20560.3417  0.34%     -    2s
+     0     0 20514.2792    0   48 20490.7133 20514.2792  0.12%     -    3s
+H    0     0                    20495.011292 20514.1562  0.09%     -    3s
+     0     0 20514.1562    0   48 20495.0113 20514.1562  0.09%     -    4s
+H    0     0                    20513.841667 20514.1468  0.00%     -    4s
+     0     0 20513.9042    0   48 20513.8417 20513.9042  0.00%     -    4s
+
+Cutting planes:
+  Gomory: 8
+  Lift-and-project: 7
+  MIR: 164
+  RLT: 36
+
+Explored 1 nodes (11831 simplex iterations) in 4.34 seconds (0.95 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 20513.8 20495 20490.7 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.051384166667e+04, best bound 2.051390416667e+04, gap 0.0003%

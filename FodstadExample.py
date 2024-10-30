@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import pickle
 
 input_file = "Data/FodstadData.xlsx"
-output_file = "Results/result1"
+output_file = "Results/result2"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -150,7 +150,11 @@ for arc in digraph.edges():
 stages = []
 for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
     for hour_id in range(1, nr_hours + 1):
-        id = (stage_id - 1) * nr_hours + hour_id
+        if stage_id == 1:
+            id = 1
+        else:
+            id = 1 + (stage_id - 2) * nr_hours + hour_id
+        # id = (stage_id - 1) * nr_hours + hour_id
         stage_nodes = []
         for node in digraph.nodes():
             node_id = digraph.nodes()[node]["ID"]
@@ -219,11 +223,14 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
 
         if stage_id == 1:
             if hour_id > 1:
-                parent = stages[-1]
+                # parent = stages[-1]
+                continue
             else:
                 parent = None
             stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, parent, hour_id)
         elif stage_id <= nr_stage2_nodes + 1:
+            if id == 21:
+                breakpoint()
             if hour_id > 1:
                 parent = stages[-1]
             else:
@@ -233,7 +240,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
             if hour_id > 1:
                 parent = stages[-1]
             else:
-                parent_id = parents3[stage_id - nr_stage2_nodes - 2]
+                parent_id = parents3[stage_id - nr_stage2_nodes - 2] + (nr_hours - 1)
                 parent = [stage for stage in stages if stage.stage_id == parent_id][0]
             stage = Stage(id, "intra day", probabilities3[stage_id - nr_stage2_nodes - 2], stage_nodes, stage_arcs, parent, hour_id)
 
@@ -253,6 +260,14 @@ print("Number of edges:", digraph.number_of_edges())
 # Print how many scenario nodes the problem has
 print(f"Number of scenario nodes: {len(problem.stages)}")
 
-# model = problem.build_model()
-# model.optimize()
-# problem.save_solution(model, f"{output_file}.json")
+model = problem.build_model()
+
+# Write gurobi output to file
+model.setParam('OutputFlag', 1)
+model.setParam('LogFile', f"{output_file}.log")
+
+# Set a maximum runtime of 10 hours
+model.setParam('TimeLimit', 36000)
+
+model.optimize()
+problem.save_solution(model, f"{output_file}.json")
