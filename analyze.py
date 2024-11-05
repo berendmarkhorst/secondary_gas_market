@@ -2,12 +2,13 @@ import pickle
 import json
 import matplotlib.pyplot as plt
 
-input_file = "Results/result2"
+input_file = "Results/result3"
 nr_hours = 4
-production_values = False
-booked_capacity = True
+production_values = True
+booked_capacity = False
 flow_values = False
 storage_values = False
+benefit_large_traders = False
 
 # Load the problem instance back from the file
 with open(f"{input_file}.pkl", "rb") as file:
@@ -17,39 +18,73 @@ with open(f"{input_file}.pkl", "rb") as file:
 with open(f"{input_file}.json", "r") as file:
     solution = json.load(file)
 
+# Print node demand if bigger than zero
+# for m in problem.third_stages:
+#     for n in m.nodes:
+#         if n.node_demands:
+#             print(n.name, m, n.node_demands["gas_or_mix"])
+
+# for m in problem.third_stages:
+#     for n in m.nodes:
+#         print(n.sales_prices[problem.traders[0], "gas_or_mix"])
+
+eps = 1e-6
+
+if benefit_large_traders:
+    delta_capacities_entry = {t: 0 for t in problem.traders}
+    delta_capacities_exit = {t: 0 for t in problem.traders}
+
+    first_stage_capacity_entry = {t: 0 for t in problem.traders}
+    first_stage_capacity_exit = {t: 0 for t in problem.traders}
+
+    for t in problem.traders:
+        for m in problem.stages:
+            for n in m.nodes:
+                # for k in problem.commodities:
+                k = [commodity for commodity in problem.commodities if commodity.name == "gas"][0]
+                x_plus = solution[f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0
+                x_minus = solution[f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0
+                y_plus = solution[f"y_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0
+                y_minus = solution[f"y_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0
+
+                if m.name == "long term":
+                    first_stage_capacity_entry[t] += x_plus - y_plus
+                    first_stage_capacity_exit[t] += x_minus - y_minus
+                else:
+                    delta_capacities_entry[t] += m.probability * (x_plus - y_plus)
+                    delta_capacities_exit[t] += m.probability * (x_minus - y_minus)
+    ratios_entry = {t.name: delta_capacities_entry[t] / (first_stage_capacity_entry[t]+eps) for t in problem.traders}
+    ratios_exit = {t.name: delta_capacities_exit[t] / (first_stage_capacity_exit[t]+eps) for t in problem.traders}
+
+    print("Entry ratios:", ratios_entry)
+    # plt.bar(ratios_entry.keys(), ratios_entry.values())
+    # plt.title("Entry ratios")
+    # plt.show()
+
+    print("Exit ratios:", ratios_exit)
+    # plt.bar(ratios_exit.keys(), ratios_exit.values())
+    # plt.title("Exit ratios")
+    # plt.show()
+
 # Plot production values
 if production_values:
     for m in problem.third_stages:
         production = {k.name: {} for k in problem.commodities}
         for n in m.nodes:
-            if problem.digraph.nodes()[n.name]['Type'] == "Field":
-                for k in problem.commodities:
-                    production[k.name][n.name] = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders)
+            # if problem.digraph.nodes()[n.name]['Type'] == "Field":
+            for k in problem.commodities:
+                production[k.name][n.name] = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders)
 
-        # Prepare data for plotting
-        nodes = list(production['gas'].keys())  # ['Node 1', 'Node 3']
-        gas_values = list(production['gas'].values())  # [5.0, 5.0]
-        hydrogen_values = list(production['hydrogen'].values())  # [0.0, 0.0]
+        plt.bar(production["gas"].keys(), production["gas"].values())
 
-        # Plotting
-        x = range(len(nodes))
-        width = 0.35  # Width of the bars
-
-        fig, ax = plt.subplots()
-        ax.bar(x, gas_values, width, label='Gas')
-        ax.bar([i + width for i in x], hydrogen_values, width, label='Hydrogen')
-
-        # Add labels and title
-        ax.set_xlabel('Locations')
-        ax.set_xticks([i + width / 2 for i in x])
-        ax.set_xticklabels(nodes, rotation=45)
-        ax.set_ylabel('Values')
-        ax.set_title(f'Production in scenario node {m.stage_id}')
-        ax.legend()
-
+        plt.xlabel("Locations")
+        plt.xticks(rotation=45)
+        plt.ylabel("Values");
+        plt.title(f'Production in scenario node {m.stage_id}')
         plt.show()
 
 if booked_capacity:
+    print(problem.commodities[0].name)
     # Plot booked capacity values
     for t in problem.traders:
         for m in problem.third_stages:
@@ -60,10 +95,10 @@ if booked_capacity:
             parents = sorted(parents, key=lambda x: x.stage_id)
 
             for idx, p in enumerate(parents):
-                x_plus = sum(solution[f"x_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in problem.commodities)
-                x_minus = sum(solution[f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in problem.commodities)
-                y_plus = sum(solution[f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in problem.commodities)
-                y_minus = sum(solution[f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in problem.commodities)
+                x_plus = sum(solution[f"x_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
+                x_minus = sum(solution[f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"x_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
+                y_plus = sum(solution[f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
+                y_minus = sum(solution[f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
 
                 if p.stage_id > 1:
                     previous = booked_capacity[f"Scenario node {parents[idx-1].stage_id}"]
@@ -73,7 +108,7 @@ if booked_capacity:
                 booked_capacity[f"Scenario node {p.stage_id}"] = x_plus - y_plus + previous
 
             plt.bar(booked_capacity.keys(), booked_capacity.values())
-            plt.title(f'Booked capacity for trader {t.trader_id}')
+            plt.title(f'Booked entry capacity for trader {t.trader_id}')
             plt.show()
 
 

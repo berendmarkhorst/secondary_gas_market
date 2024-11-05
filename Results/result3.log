@@ -1,0 +1,1225 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:42:46 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 871544 rows, 1123168 columns and 3807528 nonzeros
+Model fingerprint: 0xfd327a98
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 177280 rows and 207824 columns
+Presolve time: 0.79s
+
+Explored 0 nodes (0 simplex iterations) in 1.39 seconds (0.72 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:45:16 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 871544 rows, 1123168 columns and 3807528 nonzeros
+Model fingerprint: 0x8fb38794
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 177280 rows and 207824 columns
+Presolve time: 0.55s
+
+Explored 0 nodes (0 simplex iterations) in 1.12 seconds (0.72 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:47:36 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 871544 rows, 1123168 columns and 3807528 nonzeros
+Model fingerprint: 0x33e5e1be
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 177280 rows and 207824 columns
+Presolve time: 0.60s
+
+Explored 0 nodes (0 simplex iterations) in 1.20 seconds (0.72 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:51:18 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 871544 rows, 1123168 columns and 3807528 nonzeros
+Model fingerprint: 0xbbebf173
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [5e-01, 1e+06]
+Presolve removed 177280 rows and 207824 columns
+Presolve time: 0.50s
+
+Explored 0 nodes (0 simplex iterations) in 0.99 seconds (0.71 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:53:16 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x7de7cb2f
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 520298 rows and 498960 columns
+Presolve time: 0.98s
+
+Explored 0 nodes (0 simplex iterations) in 1.46 seconds (1.06 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 14:56:15 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x4083ca77
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 173376 rows and 207824 columns
+Presolve time: 0.62s
+
+Explored 0 nodes (0 simplex iterations) in 1.08 seconds (0.71 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:07:24 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x7bff1869
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 520298 rows and 499024 columns
+Presolve time: 0.88s
+
+Explored 0 nodes (0 simplex iterations) in 1.38 seconds (1.06 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:09:22 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x9d1f166c
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 173376 rows and 207824 columns
+Presolve time: 0.51s
+
+Explored 0 nodes (0 simplex iterations) in 1.04 seconds (0.71 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:11:15 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x56619d44
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 173376 rows and 207824 columns
+Presolve time: 0.71s
+
+Explored 0 nodes (0 simplex iterations) in 1.29 seconds (0.71 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:29:07 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x71b11527
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 520282 rows and 499024 columns
+Presolve time: 0.69s
+
+Explored 0 nodes (0 simplex iterations) in 1.21 seconds (1.06 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:31:03 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x71b11527
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 520282 rows and 499024 columns
+Presolve time: 0.73s
+
+Explored 0 nodes (0 simplex iterations) in 1.26 seconds (1.06 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:35:42 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 661112 rows, 1123168 columns and 3597096 nonzeros
+Model fingerprint: 0x412f0f49
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 361760 rows and 537408 columns
+Presolve time: 0.92s
+
+Explored 0 nodes (0 simplex iterations) in 1.39 seconds (1.20 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:37:41 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 661112 rows, 1123168 columns and 3597096 nonzeros
+Model fingerprint: 0xf0df2ae2
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 142848 rows and 207824 columns
+Presolve time: 0.56s
+
+Explored 0 nodes (0 simplex iterations) in 1.05 seconds (0.66 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:38:53 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x355d294e
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537122 rows and 537940 columns
+Presolve time: 0.99s
+
+Explored 0 nodes (0 simplex iterations) in 1.50 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 15:40:31 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0xc787b078
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537124 rows and 537976 columns
+Presolve time: 0.87s
+
+Explored 0 nodes (0 simplex iterations) in 1.43 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 16:05:07 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 73416 rows, 88880 columns and 278696 nonzeros
+Model fingerprint: 0xbcf58b53
+Variable types: 85936 continuous, 2944 integer (2944 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+01, 1e+06]
+Presolve removed 64560 rows and 78682 columns
+Presolve time: 0.35s
+Presolved: 8856 rows, 10198 columns, 38418 nonzeros
+Variable types: 8158 continuous, 2040 integer (2040 binary)
+Found heuristic solution: objective 20459.291667
+
+Root relaxation: cutoff, 1851 iterations, 0.03 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0     cutoff    0      20459.2917 20459.2917  0.00%     -    0s
+
+Explored 1 nodes (1851 simplex iterations) in 0.51 seconds (0.37 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 20459.3 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.045929166667e+04, best bound 2.045929166667e+04, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 16:09:17 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0xc787b078
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537124 rows and 537976 columns
+Presolve time: 0.86s
+
+Explored 0 nodes (0 simplex iterations) in 1.39 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 16:10:55 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x92ca87f1
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537140 rows and 538264 columns
+Presolve time: 1.06s
+
+Explored 0 nodes (0 simplex iterations) in 1.56 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Nov  1 16:14:08 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x5ecf8b46
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537140 rows and 538264 columns
+Presolve time: 0.87s
+
+Explored 0 nodes (0 simplex iterations) in 1.41 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 12:45:11 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 73416 rows, 88880 columns and 278696 nonzeros
+Model fingerprint: 0x2fa95a44
+Variable types: 85936 continuous, 2944 integer (2944 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+01, 1e+06]
+Presolve removed 64560 rows and 78682 columns
+Presolve time: 0.48s
+Presolved: 8856 rows, 10198 columns, 38418 nonzeros
+Variable types: 8158 continuous, 2040 integer (2040 binary)
+Found heuristic solution: objective 20339.291667
+
+Root relaxation: cutoff, 1851 iterations, 0.05 seconds (0.03 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0     cutoff    0      20339.2917 20339.2917  0.00%     -    0s
+
+Explored 1 nodes (1851 simplex iterations) in 0.69 seconds (0.37 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 20339.3 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.033929166667e+04, best bound 2.033929166667e+04, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 12:46:16 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x14136a90
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 537140 rows and 538264 columns
+Presolve time: 1.01s
+
+Explored 0 nodes (0 simplex iterations) in 1.57 seconds (1.15 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 12:47:57 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 661112 rows, 1123168 columns and 3597096 nonzeros
+Model fingerprint: 0x03e58b9b
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Presolve removed 393068 rows and 580920 columns
+Presolve time: 0.90s
+
+Explored 0 nodes (0 simplex iterations) in 1.38 seconds (1.22 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 12:50:48 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 859832 rows, 1123168 columns and 3795816 nonzeros
+Model fingerprint: 0x97060b92
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+06]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 1e+06]
+Found heuristic solution: objective -657.1875000
+Presolve removed 809539 rows and 937679 columns
+Presolve time: 2.14s
+Presolved: 50293 rows, 185489 columns, 591722 nonzeros
+Found heuristic solution: objective -638.4375000
+Variable types: 184081 continuous, 1408 integer (1408 binary)
+Found heuristic solution: objective -348.4375000
+Found heuristic solution: objective -318.4375000
+
+Root relaxation: objective -1.025000e+02, 62 iterations, 0.01 seconds (0.00 work units)
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+*    0     0               0    -102.5000000 -102.50000  0.00%     -    3s
+
+Explored 1 nodes (62 simplex iterations) in 3.84 seconds (2.49 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 2: -102.5 -657.188 
+No other solutions better than -102.5
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -1.025000000000e+02, best bound -1.025000000000e+02, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 12:53:57 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 843832 rows, 1123168 columns and 3549928 nonzeros
+Model fingerprint: 0x071f0223
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 533172 rows and 544280 columns
+Presolve time: 0.95s
+
+Explored 0 nodes (0 simplex iterations) in 1.37 seconds (1.07 work units)
+Thread count was 1 (of 8 available processors)
+
+Solution count 0
+
+Model is infeasible or unbounded
+Best objective -, best bound -, gap -
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 13:01:27 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 422108 rows, 1123168 columns and 1776116 nonzeros
+Model fingerprint: 0xa40a218f
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 9e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 321344 rows and 1014932 columns
+Presolve time: 1.19s
+Presolved: 100764 rows, 108236 columns, 372540 nonzeros
+Variable types: 108236 continuous, 0 integer (0 binary)
+
+Explored 1 nodes (0 simplex iterations) in 2.65 seconds (1.07 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: -0 
+No other solutions better than -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -0.000000000000e+00, best bound -0.000000000000e+00, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 13:03:46 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 422108 rows, 1123168 columns and 1776116 nonzeros
+Model fingerprint: 0x7fe738f5
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 9e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 321344 rows and 1014932 columns (presolve time = 5s) ...
+Presolve removed 321344 rows and 1014932 columns
+Presolve time: 5.08s
+Presolved: 100764 rows, 108236 columns, 372540 nonzeros
+Variable types: 108236 continuous, 0 integer (0 binary)
+
+Explored 1 nodes (0 simplex iterations) in 8.08 seconds (1.07 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: -0 
+No other solutions better than -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -0.000000000000e+00, best bound -0.000000000000e+00, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 14:13:01 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 422108 rows, 1123168 columns and 1776116 nonzeros
+Model fingerprint: 0x0c3b21f5
+Variable types: 1117152 continuous, 6016 integer (6016 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [2e+00, 9e+03]
+Found heuristic solution: objective -0.0000000
+Presolve removed 321280 rows and 1014404 columns
+Presolve time: 0.89s
+Presolved: 100828 rows, 108764 columns, 373596 nonzeros
+Variable types: 108764 continuous, 0 integer (0 binary)
+
+Explored 1 nodes (0 simplex iterations) in 1.90 seconds (1.07 work units)
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: -0 
+No other solutions better than -0
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective -0.000000000000e+00, best bound -0.000000000000e+00, gap 0.0000%
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 14:15:49 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 386620 rows, 1027872 columns and 1700948 nonzeros
+Model fingerprint: 0xe77746c3
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 358283 rows and 991926 columns
+Presolve time: 1.39s
+Presolved: 28337 rows, 35946 columns, 128298 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.03s
+
+Barrier performed 0 iterations in 1.50 seconds (1.03 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 13461
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   21523   -0.0000000e+00   0.000000e+00   0.000000e+00      2s
+
+Solved in 21523 iterations and 2.29 seconds (1.71 work units)
+Optimal objective -0.000000000e+00
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 14:36:25 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 376700 rows, 1027872 columns and 1691028 nonzeros
+Model fingerprint: 0x6d63211a
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 355460 rows and 992579 columns
+Presolve time: 1.39s
+Presolved: 21240 rows, 35293 columns, 107666 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 164
+ AA' NZ     : 1.924e+04
+ Factor NZ  : 6.681e+04 (roughly 5 MB of memory)
+ Factor Ops : 1.363e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+Barrier performed 0 iterations in 1.52 seconds (1.06 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 32
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1092   -0.0000000e+00   0.000000e+00   0.000000e+00      2s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+       0 DPushes remaining with DInf 0.0000000e+00                 2s
+
+     525 PPushes remaining with PInf 0.0000000e+00                 2s
+       0 PPushes remaining with PInf 0.0000000e+00                 2s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.8384599e-14      2s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    2806   -0.0000000e+00   0.000000e+00   6.538520e-14      2s
+Extra simplex iterations after uncrush: 21792
+   24598   -0.0000000e+00   0.000000e+00   0.000000e+00      3s
+
+Solved in 24598 iterations and 3.34 seconds (2.87 work units)
+Optimal objective -0.000000000e+00
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:17:00 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 28996 rows, 80176 columns and 117300 nonzeros
+Model fingerprint: 0xa3c139c0
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+01, 1e+03]
+Presolve removed 23916 rows and 73356 columns
+Presolve time: 0.09s
+Presolved: 5080 rows, 6820 columns, 18860 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.01s
+
+Barrier statistics:
+ AA' NZ     : 2.631e+04
+ Factor NZ  : 1.169e+05 (roughly 6 MB of memory)
+ Factor Ops : 1.024e+07 (less than 1 second per iteration)
+ Threads    : 3
+
+Barrier performed 0 iterations in 0.13 seconds (0.06 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 981
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    3564    2.0611792e+04   0.000000e+00   0.000000e+00      0s
+
+Solved in 3564 iterations and 0.22 seconds (0.12 work units)
+Optimal objective  2.061179167e+04
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:17:50 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 376700 rows, 1027872 columns and 1691028 nonzeros
+Model fingerprint: 0x389ea0f6
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 355460 rows and 992579 columns
+Presolve time: 1.33s
+Presolved: 21240 rows, 35293 columns, 107666 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 164
+ AA' NZ     : 1.924e+04
+ Factor NZ  : 6.681e+04 (roughly 5 MB of memory)
+ Factor Ops : 1.363e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+Barrier performed 0 iterations in 1.46 seconds (1.06 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 32
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1092   -0.0000000e+00   0.000000e+00   0.000000e+00      1s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+       0 DPushes remaining with DInf 0.0000000e+00                 2s
+
+     525 PPushes remaining with PInf 0.0000000e+00                 2s
+       0 PPushes remaining with PInf 0.0000000e+00                 2s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.8384599e-14      2s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    2806   -0.0000000e+00   0.000000e+00   6.538520e-14      2s
+Extra simplex iterations after uncrush: 21348
+   24154   -0.0000000e+00   0.000000e+00   0.000000e+00      3s
+
+Solved in 24154 iterations and 3.19 seconds (2.81 work units)
+Optimal objective -0.000000000e+00
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:18:51 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 53756 rows, 149920 columns and 190036 nonzeros
+Model fingerprint: 0x08ca3ea1
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 51815 rows and 146068 columns
+Presolve time: 0.15s
+Presolved: 1941 rows, 3852 columns, 7884 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.01s
+
+Barrier performed 0 iterations in 0.17 seconds (0.12 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 6719
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    6953   -0.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 6953 iterations and 0.32 seconds (0.27 work units)
+Optimal objective -0.000000000e+00
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:22:33 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 376700 rows, 1027872 columns and 1691028 nonzeros
+Model fingerprint: 0x76cd0a3e
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 355460 rows and 992579 columns
+Presolve time: 1.41s
+Presolved: 21240 rows, 35293 columns, 107666 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 164
+ AA' NZ     : 1.924e+04
+ Factor NZ  : 6.675e+04 (roughly 5 MB of memory)
+ Factor Ops : 1.361e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+Barrier performed 0 iterations in 1.54 seconds (1.06 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 30
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1090   -0.0000000e+00   0.000000e+00   0.000000e+00      2s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+       0 DPushes remaining with DInf 0.0000000e+00                 2s
+
+     530 PPushes remaining with PInf 0.0000000e+00                 2s
+       0 PPushes remaining with PInf 0.0000000e+00                 2s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.6597834e-14      2s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    2809   -0.0000000e+00   0.000000e+00   3.896883e-14      2s
+Extra simplex iterations after uncrush: 21451
+   24260   -0.0000000e+00   0.000000e+00   0.000000e+00      3s
+
+Solved in 24260 iterations and 3.17 seconds (2.68 work units)
+Optimal objective -0.000000000e+00
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:30:35 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 376700 rows, 1027872 columns and 1691028 nonzeros
+Model fingerprint: 0x659f0a76
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 355324 rows and 992439 columns
+Presolve time: 1.36s
+Presolved: 21376 rows, 35433 columns, 107927 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 164
+ AA' NZ     : 1.913e+04
+ Factor NZ  : 6.588e+04 (roughly 5 MB of memory)
+ Factor Ops : 1.347e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -1.20603847e+05  6.54783887e+04  2.52e+02 3.14e+00  2.03e+02     1s
+   1  -6.78776147e+03  8.92899035e+04  4.63e+01 1.25e+00  3.68e+01     1s
+
+Barrier performed 1 iterations in 1.49 seconds (1.07 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 53
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1992    1.8187896e+04   0.000000e+00   0.000000e+00      2s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+       0 DPushes remaining with DInf 0.0000000e+00                 2s
+
+     625 PPushes remaining with PInf 0.0000000e+00                 2s
+       0 PPushes remaining with PInf 0.0000000e+00                 2s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 2.6700864e-14      2s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    3827    1.8187896e+04   0.000000e+00   3.955170e-14      2s
+Extra simplex iterations after uncrush: 22122
+   25949    1.8187896e+04   0.000000e+00   0.000000e+00      4s
+
+Solved in 25949 iterations and 4.21 seconds (3.81 work units)
+Optimal objective  1.818789600e+04
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Nov  5 16:31:56 2024
+
+Set parameter LogFile to value "Results/result3.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 376700 rows, 1027872 columns and 1691028 nonzeros
+Model fingerprint: 0x659f0a76
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-02, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 9e+03]
+Presolve removed 355324 rows and 992439 columns
+Presolve time: 1.79s
+Presolved: 21376 rows, 35433 columns, 107927 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 164
+ AA' NZ     : 1.913e+04
+ Factor NZ  : 6.588e+04 (roughly 5 MB of memory)
+ Factor Ops : 1.347e+06 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -1.20603847e+05  6.54783887e+04  2.52e+02 3.14e+00  2.03e+02     2s
+
+Barrier performed 0 iterations in 1.98 seconds (1.06 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 53
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    1992    1.8187896e+04   0.000000e+00   0.000000e+00      2s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+       0 DPushes remaining with DInf 0.0000000e+00                 2s
+
+     625 PPushes remaining with PInf 0.0000000e+00                 2s
+       0 PPushes remaining with PInf 0.0000000e+00                 2s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 2.6700864e-14      2s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+    3827    1.8187896e+04   0.000000e+00   3.955170e-14      2s
+   25948    1.8187905e+04   0.000000e+00   1.625000e-01      5s
+Extra simplex iterations after uncrush: 22122
+   25949    1.8187896e+04   0.000000e+00   0.000000e+00      6s
+
+Solved in 25949 iterations and 5.95 seconds (3.81 work units)
+Optimal objective  1.818789600e+04

@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import pickle
 
-input_file = "Data/FodstadData.xlsx"
-output_file = "Results/result2"
+input_file = "Data/OurData.xlsx"
+output_file = "Results/result3"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -128,6 +128,7 @@ parents3 = [float(p)for p in parent3_df.iloc[0][1:] if is_float(p)]
 traders = []
 for trader_idx, trader_name in enumerate(shipper_df.columns):
     t = Trader(trader_idx + 1, trader_name)
+    t.nodes = shipper_df[t.name].values
     traders.append(t)
 gas = Commodity(1, "gas")
 hydrogen = Commodity(2, "hydrogen")
@@ -173,7 +174,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
 
             production_costs_temp = {(t, k): production_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
-            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] * int(name in shipper_df[t.name].values) for k in commodities for t in traders}
+            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] for k in commodities for t in traders} # * int(name in shipper_df[t.name].values)
             tso_entry_costs_temp = {k: tso_entry_costs[node, k.name] for k in commodities}
             tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
             storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
@@ -185,7 +186,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 if stage_id <= nr_stage2_nodes + 1:
                     sales_prices = None
                     continue
-                elif name == "Germany":
+                elif name == "EMDEN" or name == "EMDEN 2" or name == "Germany":
                     if (stage_id - nr_stage2_nodes) % 4 == 0:
                         extra = 3
                     elif (stage_id - nr_stage2_nodes) % 4 == 1:
@@ -194,7 +195,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                         extra = -3
                     elif (stage_id - nr_stage2_nodes) % 4 == 3:
                         extra = -3
-                elif name == "Zeebrugge":
+                elif name == "ZEEBRUGGE" or name == "Zeebrugge":
                     if (stage_id - nr_stage2_nodes) % 4 == 0:
                         extra = 2
                     elif (stage_id - nr_stage2_nodes) % 4 == 1:
