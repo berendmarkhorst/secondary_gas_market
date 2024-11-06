@@ -1,14 +1,19 @@
 import pickle
 import json
 import matplotlib.pyplot as plt
+import vis
+import pandas as pd
+import geopandas as gpd
 
+data_file = "Data/OurData.xlsx"
 input_file = "Results/result3"
 nr_hours = 4
-production_values = True
-booked_capacity = False
+production_values = False
+booked_capacity = True
 flow_values = False
 storage_values = False
 benefit_large_traders = False
+interactive_plot = False
 
 # Load the problem instance back from the file
 with open(f"{input_file}.pkl", "rb") as file:
@@ -18,17 +23,36 @@ with open(f"{input_file}.pkl", "rb") as file:
 with open(f"{input_file}.json", "r") as file:
     solution = json.load(file)
 
-# Print node demand if bigger than zero
-# for m in problem.third_stages:
-#     for n in m.nodes:
-#         if n.node_demands:
-#             print(n.name, m, n.node_demands["gas_or_mix"])
-
-# for m in problem.third_stages:
-#     for n in m.nodes:
-#         print(n.sales_prices[problem.traders[0], "gas_or_mix"])
 
 eps = 1e-6
+
+if interactive_plot:
+    nodes_df = pd.read_excel(data_file, sheet_name="Nodes", skiprows=1)
+    nodes_df["Lon"] = nodes_df["X_coordinate"]
+    nodes_df["Lat"] = nodes_df["Y_coordinate"]
+
+    arcs_df = pd.read_excel(data_file, sheet_name="Arcs")
+
+    # Drop all the rows with missing geometry
+    arcs_df = arcs_df.dropna(subset=['geometry'])
+
+    gdf_pipes = gpd.GeoDataFrame(arcs_df, geometry=gpd.GeoSeries.from_wkt(arcs_df['geometry']))
+
+    k = [commodity for commodity in problem.commodities if commodity.name == "gas"][0]
+
+    # All names in both dataframes should be lowercase
+    nodes_df["Name"] = nodes_df["Name"].str.lower()
+    gdf_pipes["Name"] = gdf_pipes["Name"].str.lower()
+
+    for m in problem.stages:
+        for idx, row in gdf_pipes.iterrows():
+            source = row["Source"]
+            sink = row["Sink"]
+            flow1 = sum(solution[f"f[{t.trader_id},{source},{sink},{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},{source},{sink},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders)
+            flow2 = sum(solution[f"f[{t.trader_id},{sink},{source},{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},{sink},{source},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders)
+            gdf_pipes.loc[(gdf_pipes["Source"] == source) & (gdf_pipes["Sink"] == sink), "Flow"] = flow1 + flow2
+
+    vis.interactive_plot(gdf_pipes, nodes_df, extra_info=True)
 
 if benefit_large_traders:
     delta_capacities_entry = {t: 0 for t in problem.traders}
@@ -84,14 +108,13 @@ if production_values:
         plt.show()
 
 if booked_capacity:
-    print(problem.commodities[0].name)
     # Plot booked capacity values
     for t in problem.traders:
         for m in problem.third_stages:
             # Only print the last hours of each stage.
             # if m.hour == nr_hours: #len(m.all_parents) == 2 + nr_hours - 1:
             booked_capacity = {}
-            parents = [m_tilde for m_tilde in m.all_parents if m_tilde.hour == m.hour or m_tilde.stage_id == 1] + [m]
+            parents = [m_tilde for m_tilde in m.all_parents if m_tilde.hour == m.hour] + [m]
             parents = sorted(parents, key=lambda x: x.stage_id)
 
             for idx, p in enumerate(parents):
@@ -100,7 +123,7 @@ if booked_capacity:
                 y_plus = sum(solution[f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_plus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
                 y_minus = sum(solution[f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]"] if f"y_minus[{n.node_id},{p.stage_id},{t.trader_id},{k.commodity_id}]" in solution.keys() else 0 for n in p.nodes for k in [problem.commodities[0]])
 
-                if p.stage_id > 1:
+                if p.name != "long term":
                     previous = booked_capacity[f"Scenario node {parents[idx-1].stage_id}"]
                 else:
                     previous = 0
@@ -108,7 +131,7 @@ if booked_capacity:
                 booked_capacity[f"Scenario node {p.stage_id}"] = x_plus - y_plus + previous
 
             plt.bar(booked_capacity.keys(), booked_capacity.values())
-            plt.title(f'Booked entry capacity for trader {t.trader_id}')
+            plt.title(f'Booked entry capacity for trader {t.name}')
             plt.show()
 
 

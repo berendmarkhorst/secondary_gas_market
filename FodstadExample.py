@@ -19,6 +19,7 @@ parameters_df = pd.read_excel(input_file, sheet_name="Parameters")
 gas_sales_df = pd.read_excel(input_file, sheet_name="SalesPriceGasMix")
 hydrogen_sales_df = pd.read_excel(input_file, sheet_name="SalesPricePureHydrogen")
 shipper_df = pd.read_excel(input_file, sheet_name="Traders")
+probabilities_df = pd.read_excel(input_file, sheet_name="Probabilities")
 
 # Parameters
 nr_stage2_nodes = int(parameters_df[parameters_df["Name"] == "Stage 2 nodes"]["Value"].values[0])
@@ -104,6 +105,7 @@ def get_node_demands(sheet_name, skiprows, nr_stage_nodes):
                     node_demands[(stage_node, hour, node, d)] = demand
     return node_demands
 
+node_demands1 = get_node_demands("Demand Stage 1", 3, 1)
 node_demands2 = get_node_demands("Demand Stage 2", 3, nr_stage2_nodes)
 node_demands3 = get_node_demands("Demand Stage 3", 4, nr_stage3_nodes)
 
@@ -151,17 +153,17 @@ for arc in digraph.edges():
 stages = []
 for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
     for hour_id in range(1, nr_hours + 1):
-        if stage_id == 1:
-            id = 1
-        else:
-            id = 1 + (stage_id - 2) * nr_hours + hour_id
-        # id = (stage_id - 1) * nr_hours + hour_id
+        # if stage_id == 1:
+        #     id = 1
+        # else:
+        #     id = 1 + (stage_id - 2) * nr_hours + hour_id
+        id = (stage_id - 1) * nr_hours + hour_id
         stage_nodes = []
         for node in digraph.nodes():
             node_id = digraph.nodes()[node]["ID"]
             name = node
             if stage_id == 1:
-                node_demands_temp = None
+                node_demands_temp = {d: node_demands1[0, hour_id-1, node, d] for d in d_list}
                 entry_costs_temp = {(t, k): entry_costs1[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs1[node, k.name] for k in commodities for t in traders}
             elif stage_id <= nr_stage2_nodes + 1:
@@ -224,26 +226,27 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
 
         if stage_id == 1:
             if hour_id > 1:
-                # parent = stages[-1]
-                continue
+                parent = stages[-1]
+                # continue
             else:
                 parent = None
-            stage = Stage(id, "long term", 1, stage_nodes, stage_arcs, parent, hour_id)
-        elif stage_id <= nr_stage2_nodes + 1:
-            if id == 21:
-                breakpoint()
+            probability = probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+            stage = Stage(id, "long term", probability, stage_nodes, stage_arcs, parent, hour_id)
+        elif 1 < stage_id <= nr_stage2_nodes + 1:
             if hour_id > 1:
                 parent = stages[-1]
             else:
-                parent = stages[0]
-            stage = Stage(id, "day ahead", probabilities2[stage_id-2], stage_nodes, stage_arcs, parent, hour_id)
+                parent = stages[nr_hours-1]
+            probability = probabilities2[stage_id-2] * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+            stage = Stage(id, "day ahead", probability, stage_nodes, stage_arcs, parent, hour_id)
         else:
             if hour_id > 1:
                 parent = stages[-1]
             else:
                 parent_id = parents3[stage_id - nr_stage2_nodes - 2] + (nr_hours - 1)
                 parent = [stage for stage in stages if stage.stage_id == parent_id][0]
-            stage = Stage(id, "intra day", probabilities3[stage_id - nr_stage2_nodes - 2], stage_nodes, stage_arcs, parent, hour_id)
+            probability = probabilities3[stage_id - nr_stage2_nodes - 2] * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+            stage = Stage(id, "intra day", probability, stage_nodes, stage_arcs, parent, hour_id)
 
         stages.append(stage)
 
@@ -261,7 +264,7 @@ print("Number of edges:", digraph.number_of_edges())
 # Print how many scenario nodes the problem has
 print(f"Number of scenario nodes: {len(problem.stages)}")
 
-model = problem.build_model()
+model = problem.build_model(first_stage_constraint=False)
 
 # Write gurobi output to file
 model.setParam('OutputFlag', 1)

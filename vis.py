@@ -30,14 +30,14 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
     arrow_angles = []
 
     if extra_info:
-        gdf_facilities["Hover"] = gdf_facilities["Node"] # + " (" + gdf_facilities["Capacity"].astype(str) + " capacity)"
+        gdf_facilities["Hover"] = gdf_facilities["Name"]  # Was eerst Node! # + " (" + gdf_facilities["Capacity"].astype(str) + " capacity)"
     else:
-        gdf_facilities["Hover"] = gdf_facilities["Node"]
+        gdf_facilities["Hover"] = gdf_facilities["Name"]
 
     for idx, line in enumerate(gdf_pipes.geometry):
-        pipe_name = gdf_pipes.iloc[idx]['mapLabel']
+        pipe_name = gdf_pipes.iloc[idx]['Name'] # Was eerst mapLabel
         if extra_info:
-            pipe_name += f" ({gdf_pipes.iloc[idx]['Capacity']} capacity)"
+            pipe_name += f" ({gdf_pipes.iloc[idx]['Flow']} flow)"
         x, y = line.xy
         pipe_longitudes.extend(x)
         pipe_latitudes.extend(y)
@@ -46,7 +46,7 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
         mid_idx = len(x) // 2 - 1
         arrow_latitudes.append(y[mid_idx])
         arrow_longitudes.append(x[mid_idx])
-        arrow_texts.append(gdf_pipes.iloc[idx]['mapLabel'])
+        arrow_texts.append(gdf_pipes.iloc[idx]['Name'])
 
         # Calculate the arrow angle based on the direction between two points
         dx = x[mid_idx + 1] - x[mid_idx]
@@ -75,8 +75,8 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
 
     # Add the facilities (points) to the plot
     fig.add_trace(go.Scattermapbox(
-        lat=df_facilities["Lat"],
-        lon=df_facilities["Lon"],
+        lat=gdf_facilities["Lat"],
+        lon=gdf_facilities["Lon"],
         mode='markers',
         marker=go.scattermapbox.Marker(size=10, color='blue'),
         text=gdf_facilities['Hover'],  # Assuming you have a column 'facility_name'
@@ -113,7 +113,7 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
     # Add title
     fig.update_layout(title_text='Pipeline and Facilities Visualization')
 
-    fig.write_html("network_visualization.html")
+    # fig.write_html("network_visualization.html")
 
     fig.show()
 
