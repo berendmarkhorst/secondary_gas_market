@@ -19,7 +19,7 @@ class Trader:
 
 class StageNode:
     def __init__(self, node_id: int, name: str,
-                 node_demands: Dict[Commodity, float], production_costs: Dict[Tuple[Trader, Commodity], float],
+                 node_demands: Dict[Tuple[Commodity, Trader], float], production_costs: Dict[Tuple[Trader, Commodity], float],
                  production_capacities: Dict[Tuple[Trader, Commodity], float],
                  tso_entry_costs: Dict[Commodity, float], tso_exit_costs: Dict[Commodity, float],
                  storage_costs: Dict[Tuple[Trader, Commodity], float],
@@ -172,7 +172,7 @@ class Problem:
                         supplier_exit_costs = (x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.exit_costs[(t, k)]
                         objective -= self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs)
 
-                        if m.name == "intra day":
+                        if m.name == "intra day" or first_stage_constraint:
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
                             storage_costs = v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
                             flow_costs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
@@ -193,8 +193,8 @@ class Problem:
                     for k in self.commodities:
                         if n.name not in t.nodes or k.name == "hydrogen":
                             model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-                            for d in self.d_list:
-                                model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
+                            # for d in self.d_list:
+                            #     model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
 
         # TSO constraints
         # Equation 1b
@@ -216,8 +216,9 @@ class Problem:
         for m in stages:
             for n in m.nodes:
                 for d in self.d_list:
-                    model.addConstr(gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for t in self.traders for k in self.k_dict[d]) == n.node_demands[d],
-                                    name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
+                    for t in self.traders:
+                        model.addConstr(gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for k in self.k_dict[d]) >= n.node_demands[(d, t)],
+                                        name=f"eq1c[{n.node_id},{m.stage_id},{t.trader_id}]")
 
         # Supplier constraints
         # Equation 1d

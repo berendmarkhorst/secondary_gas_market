@@ -20,6 +20,7 @@ gas_sales_df = pd.read_excel(input_file, sheet_name="SalesPriceGasMix")
 hydrogen_sales_df = pd.read_excel(input_file, sheet_name="SalesPricePureHydrogen")
 shipper_df = pd.read_excel(input_file, sheet_name="Traders")
 probabilities_df = pd.read_excel(input_file, sheet_name="Probabilities")
+trader_percentages_df = pd.read_excel(input_file, sheet_name="TraderPercentages")
 
 # Parameters
 nr_stage2_nodes = int(parameters_df[parameters_df["Name"] == "Stage 2 nodes"]["Value"].values[0])
@@ -144,7 +145,10 @@ for arc in digraph.edges():
     name = digraph.edges()[arc]["Name"]
     source = arc[0]
     sink = arc[1]
-    capacity = digraph.edges()[arc]["Capacity"]
+    if arcs_df[(arcs_df["Source"] == source) & (arcs_df["Sink"] == sink)].empty:
+        capacity = 0
+    else:
+        capacity = digraph.edges()[arc]["Capacity"]
     costs = {k: arc_costs[(digraph.edges()[arc]["Source"], digraph.edges()[arc]["Sink"]), k.name] for k in commodities}
     stage_arc = StageArc(id, name, source, sink, capacity, costs)
     stage_arcs.append(stage_arc)
@@ -162,16 +166,19 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
         for node in digraph.nodes():
             node_id = digraph.nodes()[node]["ID"]
             name = node
+
+            trader_percentages = {t.name: trader_percentages_df[trader_percentages_df["Trader"] == t.name][name].values[0] if name in trader_percentages_df.columns else 0 for t in traders}
+
             if stage_id == 1:
-                node_demands_temp = {d: node_demands1[0, hour_id-1, node, d] for d in d_list}
+                node_demands_temp = {(d, t): node_demands1[0, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs1[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs1[node, k.name] for k in commodities for t in traders}
             elif stage_id <= nr_stage2_nodes + 1:
-                node_demands_temp = {d: node_demands2[stage_id-2, hour_id-1, node, d] for d in d_list}
+                node_demands_temp = {(d, t): node_demands2[stage_id-2, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs2[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs2[node, k.name] for k in commodities for t in traders}
             else:
-                node_demands_temp = {d: node_demands3[stage_id-2-nr_stage2_nodes, hour_id-1, node, d] for d in d_list}
+                node_demands_temp = {(d, t): node_demands3[stage_id-2-nr_stage2_nodes, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs3[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
 
@@ -186,7 +193,10 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
             sales_prices = {}
             for t in traders:
                 if stage_id <= nr_stage2_nodes + 1:
-                    sales_prices = None
+                    if name in gas_sales_df.columns:
+                        sales_prices[(t, "gas_or_mix")] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] # None
+                    else:
+                        sales_prices[(t, "gas_or_mix")] = 0
                     continue
                 elif name == "EMDEN" or name == "EMDEN 2" or name == "Germany":
                     if (stage_id - nr_stage2_nodes) % 4 == 0:

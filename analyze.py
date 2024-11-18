@@ -9,8 +9,8 @@ data_file = "Data/OurData.xlsx"
 input_file = "Results/result3"
 nr_hours = 4
 production_values = False
-booked_capacity = True
-flow_values = False
+booked_capacity = False
+flow_values = True
 storage_values = False
 benefit_large_traders = False
 interactive_plot = False
@@ -23,6 +23,11 @@ with open(f"{input_file}.pkl", "rb") as file:
 with open(f"{input_file}.json", "r") as file:
     solution = json.load(file)
 
+q_sales = sum(solution[f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]"] if f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND")
+print(f"Total sales to POLAND: {q_sales}")
+
+q_production = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" or n.name=="BALTIC ENTRANCE")
+print(f"Total production in POLAND: {q_production}")
 
 eps = 1e-6
 

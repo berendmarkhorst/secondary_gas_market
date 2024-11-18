@@ -17,7 +17,7 @@ def load_data(inputfile):
     return gdf_pipes, df_facilities
 
 
-def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
+def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False, labels_ruud=False):
 
     # Extract coordinates and hover text for the pipelines
     pipe_latitudes = []
@@ -30,7 +30,9 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
     arrow_angles = []
 
     if extra_info:
-        gdf_facilities["Hover"] = gdf_facilities["Name"]  # Was eerst Node! # + " (" + gdf_facilities["Capacity"].astype(str) + " capacity)"
+        gdf_facilities["Hover"] = gdf_facilities["Name"] # Was eerst Node! # + " (" + gdf_facilities["Capacity"].astype(str) + " capacity)"
+    elif labels_ruud:
+        gdf_facilities["Hover"] = gdf_facilities['Name'].astype(str) + "<br>" + gdf_facilities['Ruud'].astype(str)
     else:
         gdf_facilities["Hover"] = gdf_facilities["Name"]
 
@@ -122,4 +124,4 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False):
 if __name__ == "__main__":
     gdf_pipes, df_facilities = load_data("Data/result network Norway_REB.xlsx")
 
-    _ = interactive_plot(gdf_pipes, df_facilities, extra_info=True)
+    _ = interactive_plot(gdf_pipes, df_facilities, extra_info=False, labels_ruud=True)
