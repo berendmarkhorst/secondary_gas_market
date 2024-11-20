@@ -74,7 +74,7 @@ exit_costs3 = {(node, fuel.lower()): digraph.nodes()[node][f"Exit Costs {fuel} S
 
 # Production costs and capacities
 production_costs = {(t, node, fuel.lower()): digraph.nodes()[node][f"Production Costs {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
-production_capacities = {(t, node, fuel.lower()): digraph.nodes()[node][f"Production Capacity {fuel}"] for node in digraph.nodes() for t in range(1, nr_shippers+1) for fuel in column_fuels}
+production_capacities = {(node, fuel.lower()): digraph.nodes()[node][f"Production Capacity {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
 
 # TSO entry and exit costs
 tso_entry_costs = {(node, fuel.lower()): digraph.nodes()[node][f"TSO entry costs {fuel}"] for node in digraph.nodes() for fuel in column_fuels}
@@ -134,9 +134,12 @@ for trader_idx, trader_name in enumerate(shipper_df.columns):
     t.nodes = shipper_df[t.name].values
     traders.append(t)
 gas = Commodity(1, "gas")
-hydrogen = Commodity(2, "hydrogen")
-commodities = [gas, hydrogen]
-d_dict = {gas: ["gas_or_mix"], hydrogen: ["gas_or_mix", "pure_hydrogen"]}
+# hydrogen = Commodity(2, "hydrogen")
+# commodities = [gas, hydrogen]
+# d_dict = {gas: ["gas_or_mix"], hydrogen: ["gas_or_mix", "pure_hydrogen"]}
+# d_list = set([item for d in d_dict.values() for item in d])
+commodities = [gas]
+d_dict = {gas: ["gas_or_mix"]}
 d_list = set([item for d in d_dict.values() for item in d])
 
 stage_arcs = []
@@ -183,7 +186,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
 
             production_costs_temp = {(t, k): production_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
-            production_capacities_temp = {(t, k): production_capacities[t.trader_id, node, k.name] for k in commodities for t in traders} # * int(name in shipper_df[t.name].values)
+            production_capacities_temp = {k: production_capacities[node, k.name] for k in commodities} # * int(name in shipper_df[t.name].values)
             tso_entry_costs_temp = {k: tso_entry_costs[node, k.name] for k in commodities}
             tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
             storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}

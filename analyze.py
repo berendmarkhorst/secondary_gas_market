@@ -23,11 +23,51 @@ with open(f"{input_file}.pkl", "rb") as file:
 with open(f"{input_file}.json", "r") as file:
     solution = json.load(file)
 
-q_sales = sum(solution[f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]"] if f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND")
+q_sales = sum(solution[f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]"] if f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" and m.stage_id==80)
 print(f"Total sales to POLAND: {q_sales}")
 
-q_production = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" or n.name=="BALTIC ENTRANCE")
-print(f"Total production in POLAND: {q_production}")
+# q_production = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" or n.name=="BALTIC ENTRANCE")
+# print(f"Total production in POLAND: {q_production}")
+#
+# storage = [solution[f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] for t in problem.traders for k in problem.commodities for m in problem.stages for n in m.nodes if n.name == "POLAND" if f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys()]
+# print(storage)
+#
+# storage_input = [solution[f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] for t in problem.traders for k in problem.commodities for m in problem.stages for n in m.nodes if n.name == "POLAND" and f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys()]
+# print(storage_input)
+#
+# flow = sum(solution[f"f[{t.trader_id},Denmark 4,POLAND,{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},Denmark 4,POLAND,{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities)
+# print(flow)
+#
+# flow = sum(solution[f"f[{t.trader_id},POLAND,Denmark 4,{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},POLAND,Denmark 4,{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities)
+# print(flow)
+
+def get_value_from_solution(key):
+    return solution[key] if key in solution.keys() else 0
+
+# for m in problem.third_stages:
+#     for n in m.nodes:
+#         if n.name == "POLAND":
+#             for t in problem.traders:
+#                 for k in problem.commodities:
+#                     lhs = 0
+#                     lhs += get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
+#                     lhs += get_value_from_solution(f"w_minus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
+#                     lhs += (1 - problem.loss_rate) * sum(get_value_from_solution(f"f[{t.trader_id},{a1},{a2},{m.stage_id},{k.commodity_id}]") for (a1, a2) in problem.incoming_arcs[n.node_id])
+#
+#                     rhs = 0
+#                     rhs += sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]") for d in problem.d_dict[k])
+#                     lhs += get_value_from_solution(f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
+#                     lhs += sum(get_value_from_solution(f"f[{t.trader_id},{a1},{a2},{m.stage_id},{k.commodity_id}]") for (a1, a2) in problem.outgoing_arcs[n.node_id])
+#
+#                     if abs(lhs - rhs) > 1e-6:
+#                         print(lhs, rhs, m.stage_id, t.trader_id, k.commodity_id)
+
+for m in problem.stages:
+    for n in m.nodes:
+        if n.name == "POLAND":
+            print(n.node_id)
+            break
+    break
 
 eps = 1e-6
 
@@ -163,7 +203,7 @@ if flow_values:
         for data in flows.values():
             edge_name = data['Name']
             # Calculate the total flow and filter based on threshold
-            total_flow = data['gas'] + data['hydrogen']
+            total_flow = data['gas'] # + data['hydrogen']
             if total_flow > 0.0001:  # Only plot edges with total flow > 0.01
                 source = data['Source']
                 sink = data['Sink']
