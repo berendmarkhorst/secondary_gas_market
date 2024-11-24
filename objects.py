@@ -267,7 +267,7 @@ class Problem:
                 for t in self.traders:
                     for k in self.commodities:
                         model.addConstr(gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.hour == m.hour) >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
-                                        name=f"eq1p[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
+                                        name=f"eq1g[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
 
         # Equation 1h1
         if first_stage_constraint:

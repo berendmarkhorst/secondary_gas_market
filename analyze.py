@@ -4,16 +4,22 @@ import matplotlib.pyplot as plt
 import vis
 import pandas as pd
 import geopandas as gpd
+import networkx as nx
 
 data_file = "Data/OurData.xlsx"
-input_file = "Results/result3"
+input_file = "Results/result12"
+first_stage_constraint = False
+
 nr_hours = 4
 production_values = False
 booked_capacity = False
-flow_values = True
+flow_values = False
 storage_values = False
 benefit_large_traders = False
 interactive_plot = False
+first_stage_capacity = True
+profit_per_trader = False
+second_hand_market = False
 
 # Load the problem instance back from the file
 with open(f"{input_file}.pkl", "rb") as file:
@@ -23,44 +29,9 @@ with open(f"{input_file}.pkl", "rb") as file:
 with open(f"{input_file}.json", "r") as file:
     solution = json.load(file)
 
-q_sales = sum(solution[f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]"] if f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" and m.stage_id==80)
-print(f"Total sales to POLAND: {q_sales}")
-
-# q_production = sum(solution[f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities for n in m.nodes if n.name == "POLAND" or n.name=="BALTIC ENTRANCE")
-# print(f"Total production in POLAND: {q_production}")
-#
-# storage = [solution[f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] for t in problem.traders for k in problem.commodities for m in problem.stages for n in m.nodes if n.name == "POLAND" if f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys()]
-# print(storage)
-#
-# storage_input = [solution[f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] for t in problem.traders for k in problem.commodities for m in problem.stages for n in m.nodes if n.name == "POLAND" and f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys()]
-# print(storage_input)
-#
-# flow = sum(solution[f"f[{t.trader_id},Denmark 4,POLAND,{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},Denmark 4,POLAND,{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities)
-# print(flow)
-#
-# flow = sum(solution[f"f[{t.trader_id},POLAND,Denmark 4,{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},POLAND,Denmark 4,{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for m in problem.stages for k in problem.commodities)
-# print(flow)
-
 def get_value_from_solution(key):
     return solution[key] if key in solution.keys() else 0
 
-# for m in problem.third_stages:
-#     for n in m.nodes:
-#         if n.name == "POLAND":
-#             for t in problem.traders:
-#                 for k in problem.commodities:
-#                     lhs = 0
-#                     lhs += get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
-#                     lhs += get_value_from_solution(f"w_minus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
-#                     lhs += (1 - problem.loss_rate) * sum(get_value_from_solution(f"f[{t.trader_id},{a1},{a2},{m.stage_id},{k.commodity_id}]") for (a1, a2) in problem.incoming_arcs[n.node_id])
-#
-#                     rhs = 0
-#                     rhs += sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]") for d in problem.d_dict[k])
-#                     lhs += get_value_from_solution(f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
-#                     lhs += sum(get_value_from_solution(f"f[{t.trader_id},{a1},{a2},{m.stage_id},{k.commodity_id}]") for (a1, a2) in problem.outgoing_arcs[n.node_id])
-#
-#                     if abs(lhs - rhs) > 1e-6:
-#                         print(lhs, rhs, m.stage_id, t.trader_id, k.commodity_id)
 
 for m in problem.stages:
     for n in m.nodes:
@@ -70,6 +41,141 @@ for m in problem.stages:
     break
 
 eps = 1e-6
+
+# Find min cut
+temp_graph = problem.digraph.copy()
+sinks = ["EMDEN 2", "EMDEN", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE"]
+
+for node in problem.digraph.nodes():
+    if node not in sinks:
+        temp_graph.add_edge(f"dummy_{node}", node)
+        # Add capacity to the edge
+        temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+# Add a super sink and connect all sinks
+super_sink = 'super_sink'
+for sink in sinks:
+    temp_graph.add_edge(sink, super_sink)
+    # Add capacity to the edge
+    temp_graph[sink][super_sink]['Capacity'] = 10000
+
+super_source = 'super_source'
+temp_graph.add_node(super_source)
+for node in temp_graph.nodes():
+    if node.startswith("dummy"):
+        temp_graph.add_edge(super_source, node)
+        # Add capacity to the edge
+        temp_graph[super_source][node]['Capacity'] = 10000
+
+value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
+print("Min-cut is", value)
+
+for m in problem.third_stages:
+    for n in m.nodes:
+        for t in problem.traders:
+            lhs = sum(get_value_from_solution(f"x_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") - get_value_from_solution(f"y_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") for k in problem.commodities for m_tilde in m.all_parents + [m] if m.hour == m_tilde.hour)
+            rhs = sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for k in problem.commodities)
+            # if lhs != rhs:
+            #     breakpoint()
+
+q_sales = []
+for final_stage in problem.third_stages:
+    if final_stage.name == "intra day":
+        q_sales += [sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},{d}]") for m_tilde in m.all_parents + [m] for n in final_stage.nodes for t in problem.traders for k in problem.commodities for d in problem.d_dict[k] if m_tilde.name == "intra day")]
+
+print("Total sales:", sum(q_sales) / len(q_sales))
+
+q_production = []
+for final_stage in problem.third_stages:
+    if final_stage.name == "intra day" and final_stage.hour == nr_hours:
+        q_production += [sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{final_stage.stage_id},{k.commodity_id}]") for m_tilde in m.all_parents + [m] for n in final_stage.nodes for t in problem.traders for k in problem.commodities if m_tilde.name == "intra day")]
+
+print("Average production:", sum(q_production) / len(q_production))
+
+capacity_used = []
+for m in problem.third_stages:
+    for a in m.arcs:
+        if a.arc_capacity > 0 :
+            flow = sum(get_value_from_solution(f"f[{t.trader_id},{a.source},{a.sink},{m.stage_id},{k.commodity_id}]") for t in problem.traders for k in problem.commodities)
+            capacity_used += [flow/a.arc_capacity]
+
+print("Average capacity used:", sum(capacity_used) / len(capacity_used))
+print("Number of arcs used on full capacity:", sum(1 for c in capacity_used if c >= 1) / len(problem.third_stages))
+print("Max capacity used:", max(capacity_used))
+
+production_used = []
+for m in problem.third_stages:
+    for n in m.nodes:
+        if n.production_capacity[problem.commodities[0]] > 0:
+            q_production = sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for k in problem.commodities)
+            production_used += [q_production / n.production_capacity[problem.commodities[0]]]
+            if q_production < n.production_capacity[problem.commodities[0]] and q_production > 0:
+                # print("Production capacity not used:", n.name, q_production, n.production_capacity[problem.commodities[0]])
+                pass
+
+print("Average production used:", sum(production_used) / len(production_used))
+print("Number of nodes used on full production capacity:", sum(1 for c in production_used if c >= 1) / len(problem.third_stages))
+print("Max production used:", max(production_used))
+
+all_storage = sum(get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for m in problem.third_stages for k in problem.commodities)
+print("Total storage", all_storage)
+
+if second_hand_market:
+    y_plus = sum(get_value_from_solution(f"y_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+    y_minus = sum(get_value_from_solution(f"y_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+    print("Second hand market entry:", y_plus)
+    print("Second hand market exit:", y_minus)
+
+    # Now, I want to compute the same but per trader
+    y_plus_per_trader = {t.name: sum(get_value_from_solution(f"y_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") for m in problem.stages for n in m.nodes for k in problem.commodities) for t in problem.traders}
+    y_minus_per_trader = {t.name: sum(get_value_from_solution(f"y_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") for m in problem.stages for n in m.nodes for k in problem.commodities) for t in problem.traders}
+    print("Second hand market entry per trader:", y_plus_per_trader)
+    print("Second hand market exit per trader:", y_minus_per_trader)
+
+if profit_per_trader:
+    profits = {t: 0 for t in problem.traders}
+
+    for t in problem.traders:
+        for m in problem.stages:
+            for k in problem.commodities:
+                for n in m.nodes:
+                    x_plus = get_value_from_solution(f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                    x_minus = get_value_from_solution(f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                    y_plus = get_value_from_solution(f"y_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                    y_minus = get_value_from_solution(f"y_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                    supplier_entry_costs = (x_plus - y_plus) * n.entry_costs[(t, k)]
+                    supplier_exit_costs = (x_minus - y_minus) * n.exit_costs[(t, k)]
+
+                    profits[t] += m.probability * (supplier_entry_costs + supplier_exit_costs)
+
+                    if m.name == "intra day" or first_stage_constraint:
+                        q_production = get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
+                        storage = get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]")
+
+                        flow_costs = sum(get_value_from_solution(f"f[{t.trader_id},{a[0]},{a[1]},{m.stage_id},{k.commodity_id}]") * m.get_arc(a).arc_costs[k] for a in problem.incoming_arcs[n.node_id])
+                        production_costs = q_production * n.production_costs[(t, k)]
+                        storage_costs = storage * n.storage_costs[(t, k)]
+
+                        sales = sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},{d}]") * n.sales_prices[t, d] for d in problem.d_dict[k])
+
+                        profits[t] += m.probability * (sales - production_costs - storage_costs - flow_costs)
+
+    # Make a horizontal bar plot of the profits
+    plt.barh([t.name for t in profits.keys()], profits.values())
+    plt.show()
+    print(profits)
+
+if first_stage_capacity:
+    s_plus = []
+    s_minus = []
+
+    for final_stage in problem.stages:
+        if final_stage.name == "long term" and final_stage.hour == nr_hours:
+            s_plus += [sum(get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]") for m in final_stage.all_parents + [final_stage] for n in m.nodes for k in problem.commodities)]
+            s_minus += [sum(get_value_from_solution(f"s_minus[{n.node_id},{m.stage_id},{k.commodity_id}]") for m in final_stage.all_parents + [final_stage] for n in m.nodes for k in problem.commodities)]
+
+    print("First stage capacity entry:", sum(s_plus) / len(s_plus))
+    print("First stage capacity exit:", sum(s_minus) / len(s_minus))
 
 if interactive_plot:
     nodes_df = pd.read_excel(data_file, sheet_name="Nodes", skiprows=1)
@@ -185,7 +291,7 @@ if flow_values:
     for m in problem.third_stages:
         flows = {}
         for a in m.arcs:
-            flows[(a.source, a.sink)] = {"Source": a.source, "Sink": a.sink, "Name": a.name}
+            flows[(a.source, a.sink)] = {"Source": a.source, "Sink": a.sink, "Name": a.name, "Capacity": a.arc_capacity}
             for k in problem.commodities:
                 flows[(a.source, a.sink)][k.name] = sum(solution[f"f[{t.trader_id},{a.source},{a.sink},{m.stage_id},{k.commodity_id}]"] if f"f[{t.trader_id},{a.source},{a.sink},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders)
 
@@ -213,8 +319,9 @@ if flow_values:
                 sink_y = problem.digraph.nodes()[sink]['Y_coordinate']
 
                 # Plot the edge
+                line_color = 'red' if total_flow/data["Capacity"] >= 1 else 'black'
                 plt.plot([source_x, sink_x], [source_y, sink_y],
-                         linewidth=total_flow/25, color='black', zorder=1)  # Line width corresponds to the total flow
+                         linewidth=total_flow/25, color=line_color, zorder=1)  # Line width corresponds to the total flow
 
                 # Annotate the edge name at the midpoint
                 mid_x = (source_x + sink_x) / 2

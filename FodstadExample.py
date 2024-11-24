@@ -1,12 +1,8 @@
-import pandas as pd
-import networkx as nx
 from objects import *
-import matplotlib.pyplot as plt
-import plotly.graph_objects as go
 import pickle
 
 input_file = "Data/OurData.xlsx"
-output_file = "Results/result3"
+output_file = "Results/result12"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -27,7 +23,9 @@ nr_stage2_nodes = int(parameters_df[parameters_df["Name"] == "Stage 2 nodes"]["V
 nr_stage3_nodes = int(parameters_df[parameters_df["Name"] == "Stage 3 nodes"]["Value"].values[0])
 nr_markets = int(parameters_df[parameters_df["Name"] == "Number markets"]["Value"].values[0])
 nr_hours = int(parameters_df[parameters_df["Name"] == "Number hours"]["Value"].values[0])
-allowed_percentage = float(parameters_df[parameters_df["Name"] == "Allowed percentage"]["Value"].values[0])
+allowed_percentage1 = float(parameters_df[parameters_df["Name"] == "Allowed percentage Stage 1"]["Value"].values[0])
+allowed_percentage2 = float(parameters_df[parameters_df["Name"] == "Allowed percentage Stage 2"]["Value"].values[0])
+allowed_percentage3 = float(parameters_df[parameters_df["Name"] == "Allowed percentage Stage 3"]["Value"].values[0])
 loss_rate = float(parameters_df[parameters_df["Name"] == "Loss rate"]["Value"].values[0])
 gamma = float(parameters_df[parameters_df["Name"] == "Gamma"]["Value"].values[0])
 nr_shippers = int(parameters_df[parameters_df["Name"] == "Number shippers"]["Value"].values[0])
@@ -176,14 +174,20 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 node_demands_temp = {(d, t): node_demands1[0, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs1[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs1[node, k.name] for k in commodities for t in traders}
+
+                allowed_percentage_temp = allowed_percentage1
             elif stage_id <= nr_stage2_nodes + 1:
                 node_demands_temp = {(d, t): node_demands2[stage_id-2, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs2[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs2[node, k.name] for k in commodities for t in traders}
+
+                allowed_percentage_temp = allowed_percentage2
             else:
                 node_demands_temp = {(d, t): node_demands3[stage_id-2-nr_stage2_nodes, hour_id-1, node, d] * trader_percentages[t.name] for d in d_list for t in traders}
                 entry_costs_temp = {(t, k): entry_costs3[node, k.name] for k in commodities for t in traders}
                 exit_costs_temp = {(t, k): exit_costs3[node, k.name] for k in commodities for t in traders}
+
+                allowed_percentage_temp = allowed_percentage3
 
             production_costs_temp = {(t, k): production_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
             production_capacities_temp = {k: production_capacities[node, k.name] for k in commodities} # * int(name in shipper_df[t.name].values)
@@ -191,7 +195,6 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
             tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
             storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
             storage_capacity_temp = {(t, k): storage_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
-            allowed_percentage_temp = allowed_percentage
 
             sales_prices = {}
             for t in traders:
@@ -277,7 +280,7 @@ print("Number of edges:", digraph.number_of_edges())
 # Print how many scenario nodes the problem has
 print(f"Number of scenario nodes: {len(problem.stages)}")
 
-model = problem.build_model(first_stage_constraint=False)
+model = problem.build_model(first_stage_constraint=True)
 
 # Write gurobi output to file
 model.setParam('OutputFlag', 1)
