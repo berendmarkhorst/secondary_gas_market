@@ -7,7 +7,7 @@ import geopandas as gpd
 import networkx as nx
 
 data_file = "Data/OurData.xlsx"
-input_file = "Results/result12"
+input_file = "Results/result14"
 first_stage_constraint = False
 
 nr_hours = 4
@@ -17,7 +17,7 @@ flow_values = False
 storage_values = False
 benefit_large_traders = False
 interactive_plot = False
-first_stage_capacity = True
+first_stage_capacity = False
 profit_per_trader = False
 second_hand_market = False
 
@@ -32,19 +32,43 @@ with open(f"{input_file}.json", "r") as file:
 def get_value_from_solution(key):
     return solution[key] if key in solution.keys() else 0
 
-
-for m in problem.stages:
-    for n in m.nodes:
-        if n.name == "POLAND":
-            print(n.node_id)
-            break
-    break
-
 eps = 1e-6
+
+# Find connected components
+temp = problem.digraph.to_undirected()
+components = nx.connected_components(temp)
+
+# Get subgraphs of each component
+subgraphs = [temp.subgraph(c).copy() for c in components]
+
+for subgraph in subgraphs:
+    print(subgraph.nodes())
+
+sinks = ["EMDEN 2", "EMDEN", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE", "POLAND"]
+
+for node in problem.digraph.nodes():
+    if node not in sinks:
+        # Check if capacity incoming equals capacity outgoing
+        in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
+        out_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+
+        production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+        # If the difference is bigger than 10 units, print the node
+        if production_capacity + in_capacity > out_capacity:
+            print(node, production_capacity + in_capacity, out_capacity)
+
+for node in problem.digraph.nodes():
+    production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+    # Find all outgoing arcs from this node, and sum the capacities
+    capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+
+    if capacity < production_capacity:
+        print(node, capacity, production_capacity)
 
 # Find min cut
 temp_graph = problem.digraph.copy()
-sinks = ["EMDEN 2", "EMDEN", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE"]
 
 for node in problem.digraph.nodes():
     if node not in sinks:
@@ -69,6 +93,21 @@ for node in temp_graph.nodes():
 
 value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
 print("Min-cut is", value)
+
+flow_value, flow_dict = nx.maximum_flow(temp_graph, super_source, super_sink, capacity = "Capacity")
+
+print("Maximum flow value:", flow_value)
+
+bottlenecks = []
+for u, v, data in temp_graph.edges(data=True):
+    if not u.startswith("dummy"):
+        flow = flow_dict[u][v]  # Flow along this edge
+        capacity = data['Capacity']  # Edge capacity
+        name = data["Name"] + f" {u} -> {v}" if "Name" in data.keys() else f"{u} -> {v}"
+        if flow == capacity:  # Fully saturated edge
+            bottlenecks.append(name)
+
+print("Bottleneck edges:", bottlenecks)
 
 for m in problem.third_stages:
     for n in m.nodes:
@@ -117,7 +156,7 @@ print("Average production used:", sum(production_used) / len(production_used))
 print("Number of nodes used on full production capacity:", sum(1 for c in production_used if c >= 1) / len(problem.third_stages))
 print("Max production used:", max(production_used))
 
-all_storage = sum(get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for m in problem.third_stages for k in problem.commodities)
+all_storage = sum(get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for m in problem.third_stages for n in m.nodes for k in problem.commodities)
 print("Total storage", all_storage)
 
 if second_hand_market:

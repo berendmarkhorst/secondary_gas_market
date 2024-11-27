@@ -2,7 +2,7 @@ from objects import *
 import pickle
 
 input_file = "Data/OurData.xlsx"
-output_file = "Results/result12"
+output_file = "Results/result14"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -53,10 +53,10 @@ for idx, row in arcs_df.iterrows():
     arcs.append(arc)
 
 # Make the Networkx-object.
-graph = nx.Graph()
-graph.add_nodes_from(nodes)
-graph.add_edges_from(arcs)
-digraph = graph.to_directed()
+digraph = nx.DiGraph()
+digraph.add_nodes_from(nodes)
+digraph.add_edges_from(arcs)
+# digraph = graph.to_directed()
 
 # Arc costs and capacities
 arc_costs = {(arc, fuel.lower()): digraph.edges()[arc][f"Flow costs {fuel}"] for arc in digraph.edges() for fuel in column_fuels}
@@ -280,7 +280,7 @@ print("Number of edges:", digraph.number_of_edges())
 # Print how many scenario nodes the problem has
 print(f"Number of scenario nodes: {len(problem.stages)}")
 
-model = problem.build_model(first_stage_constraint=True)
+model = problem.build_model(first_stage_constraint=False)
 
 # Write gurobi output to file
 model.setParam('OutputFlag', 1)
