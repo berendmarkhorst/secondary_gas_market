@@ -91,7 +91,9 @@ class Stage:
 
 class Problem:
     def __init__(self, digraph: nx.Graph, stages: List[Stage], traders: List[Trader], loss_rate: float,
-                 commodities: List[Commodity], gamma: float, d_dict: Dict[Commodity, List[str]]):
+                 commodities: List[Commodity], gamma: float, d_dict: Dict[Commodity, List[str]],
+                 markets: List[str]):
+        self.markets = markets
         self.digraph = digraph
         self.nodes = list(digraph.nodes)
         self.arcs = list(digraph.edges)
@@ -175,7 +177,7 @@ class Problem:
 
                         if m.name == "intra day" or first_stage_constraint:
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
-                            storage_costs = v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
+                            storage_costs = w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
                             flow_costs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
                             sales = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] * n.sales_prices[t, d] for d in self.d_dict[k])
 
@@ -194,8 +196,9 @@ class Problem:
                     for k in self.commodities:
                         if n.name not in t.nodes or k.name == "hydrogen":
                             model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-                            # for d in self.d_list:
-                            #     model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
+                            for d in self.d_list:
+                                if n.name not in self.markets:
+                                    model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
 
         # TSO constraints
         # Equation 1b
@@ -272,11 +275,11 @@ class Problem:
         # Equation 1h1
         if first_stage_constraint:
             for m in self.stages:
-                # if m.name == "long term":
-                for n in m.nodes:
-                    for t in self.traders:
-                        for k in self.commodities:
-                            model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "long term"), name=f"eq1h3[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                if m.name == "long term":
+                    for n in m.nodes:
+                        for t in self.traders:
+                            for k in self.commodities:
+                                model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "long term"), name=f"eq1h3[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1h2
         if first_stage_constraint:

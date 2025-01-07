@@ -1,8 +1,8 @@
 from objects import *
 import pickle
 
-input_file = "Data/OurData.xlsx"
-output_file = "Results/result14"
+input_file = "Data/OurData2.xlsx"
+output_file = "Results/result_v2_1"
 column_fuels = ["Gas", "Hydrogen"]
 
 # Read the data from the Excel file
@@ -204,23 +204,23 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                     else:
                         sales_prices[(t, "gas_or_mix")] = 0
                     continue
-                elif name == "EMDEN" or name == "EMDEN 2" or name == "Germany":
-                    if (stage_id - nr_stage2_nodes) % 4 == 0:
+                elif name == "EMDEN" or name == "DORNUM" or name == "Germany":
+                    if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                         extra = 3
-                    elif (stage_id - nr_stage2_nodes) % 4 == 1:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
                         extra = 3
-                    elif (stage_id - nr_stage2_nodes) % 4 == 2:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
                         extra = -3
-                    elif (stage_id - nr_stage2_nodes) % 4 == 3:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                         extra = -3
                 elif name == "ZEEBRUGGE" or name == "Zeebrugge":
-                    if (stage_id - nr_stage2_nodes) % 4 == 0:
+                    if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                         extra = 2
-                    elif (stage_id - nr_stage2_nodes) % 4 == 1:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
                         extra = -2
-                    elif (stage_id - nr_stage2_nodes) % 4 == 2:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
                         extra = 2
-                    elif (stage_id - nr_stage2_nodes) % 4 == 3:
+                    elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                         extra = -2
                 else:
                     extra = 0
@@ -266,8 +266,10 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
 
         stages.append(stage)
 
+markets = list(nodes_df[nodes_df["Type"] == "Market"]["Name"].values)
+
 # Problem object
-problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict)
+problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict, markets)
 
 # Store problem object
 with open(f"{output_file}.pkl", "wb") as file:

@@ -6,8 +6,8 @@ import pandas as pd
 import geopandas as gpd
 import networkx as nx
 
-data_file = "Data/OurData.xlsx"
-input_file = "Results/result14"
+data_file = "Data/OurData2.xlsx"
+input_file = "Results/result_v2_1"
 first_stage_constraint = False
 
 nr_hours = 4
@@ -34,102 +34,96 @@ def get_value_from_solution(key):
 
 eps = 1e-6
 
-# Find connected components
-temp = problem.digraph.to_undirected()
-components = nx.connected_components(temp)
-
-# Get subgraphs of each component
-subgraphs = [temp.subgraph(c).copy() for c in components]
-
-for subgraph in subgraphs:
-    print(subgraph.nodes())
-
-sinks = ["EMDEN 2", "EMDEN", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE", "POLAND"]
-
-for node in problem.digraph.nodes():
-    if node not in sinks:
-        # Check if capacity incoming equals capacity outgoing
-        in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
-        out_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
-
-        production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-
-        # If the difference is bigger than 10 units, print the node
-        if production_capacity + in_capacity > out_capacity:
-            print(node, production_capacity + in_capacity, out_capacity)
-
-for node in problem.digraph.nodes():
-    production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-
-    # Find all outgoing arcs from this node, and sum the capacities
-    capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
-
-    if capacity < production_capacity:
-        print(node, capacity, production_capacity)
-
-# Find min cut
-temp_graph = problem.digraph.copy()
-
-for node in problem.digraph.nodes():
-    if node not in sinks:
-        temp_graph.add_edge(f"dummy_{node}", node)
-        # Add capacity to the edge
-        temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-
-# Add a super sink and connect all sinks
-super_sink = 'super_sink'
-for sink in sinks:
-    temp_graph.add_edge(sink, super_sink)
-    # Add capacity to the edge
-    temp_graph[sink][super_sink]['Capacity'] = 10000
-
-super_source = 'super_source'
-temp_graph.add_node(super_source)
-for node in temp_graph.nodes():
-    if node.startswith("dummy"):
-        temp_graph.add_edge(super_source, node)
-        # Add capacity to the edge
-        temp_graph[super_source][node]['Capacity'] = 10000
-
-value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
-print("Min-cut is", value)
-
-flow_value, flow_dict = nx.maximum_flow(temp_graph, super_source, super_sink, capacity = "Capacity")
-
-print("Maximum flow value:", flow_value)
-
-bottlenecks = []
-for u, v, data in temp_graph.edges(data=True):
-    if not u.startswith("dummy"):
-        flow = flow_dict[u][v]  # Flow along this edge
-        capacity = data['Capacity']  # Edge capacity
-        name = data["Name"] + f" {u} -> {v}" if "Name" in data.keys() else f"{u} -> {v}"
-        if flow == capacity:  # Fully saturated edge
-            bottlenecks.append(name)
-
-print("Bottleneck edges:", bottlenecks)
-
+# Total sales
+total_sales = 0
 for m in problem.third_stages:
-    for n in m.nodes:
-        for t in problem.traders:
-            lhs = sum(get_value_from_solution(f"x_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") - get_value_from_solution(f"y_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") for k in problem.commodities for m_tilde in m.all_parents + [m] if m.hour == m_tilde.hour)
-            rhs = sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for k in problem.commodities)
-            # if lhs != rhs:
-            #     breakpoint()
+    total_sales += m.probability * sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]") for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total sales", total_sales)
 
-q_sales = []
-for final_stage in problem.third_stages:
-    if final_stage.name == "intra day":
-        q_sales += [sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},{d}]") for m_tilde in m.all_parents + [m] for n in final_stage.nodes for t in problem.traders for k in problem.commodities for d in problem.d_dict[k] if m_tilde.name == "intra day")]
+# # Find connected components
+# temp = problem.digraph.to_undirected()
+# components = nx.connected_components(temp)
+#
+# # Get subgraphs of each component
+# subgraphs = [temp.subgraph(c).copy() for c in components]
+#
+# for subgraph in subgraphs:
+#     print(subgraph.nodes())
 
-print("Total sales:", sum(q_sales) / len(q_sales))
+sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE", "POLAND"]
 
-q_production = []
-for final_stage in problem.third_stages:
-    if final_stage.name == "intra day" and final_stage.hour == nr_hours:
-        q_production += [sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{final_stage.stage_id},{k.commodity_id}]") for m_tilde in m.all_parents + [m] for n in final_stage.nodes for t in problem.traders for k in problem.commodities if m_tilde.name == "intra day")]
+# for node in problem.digraph.nodes():
+#     break
+#     if node not in sinks:
+#         # Check if capacity incoming equals capacity outgoing
+#         in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
+#         out_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+#
+#         production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+#
+#         # If the difference is bigger than 10 units, print the node
+#         if production_capacity + in_capacity > out_capacity:
+#             print(node, production_capacity + in_capacity, out_capacity)
 
-print("Average production:", sum(q_production) / len(q_production))
+# for node in problem.digraph.nodes():
+#     break
+#     production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+#
+#     # Find all outgoing arcs from this node, and sum the capacities
+#     capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+#
+#     if capacity < production_capacity:
+#         print(node, capacity, production_capacity)
+
+# # Find min cut
+# temp_graph = problem.digraph.copy()
+# 
+# for node in problem.digraph.nodes():
+#     if node not in sinks:
+#         temp_graph.add_edge(f"dummy_{node}", node)
+#         # Add capacity to the edge
+#         temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+# 
+# # Add a super sink and connect all sinks
+# super_sink = 'super_sink'
+# for sink in sinks:
+#     temp_graph.add_edge(sink, super_sink)
+#     # Add capacity to the edge
+#     temp_graph[sink][super_sink]['Capacity'] = 10000
+# 
+# super_source = 'super_source'
+# temp_graph.add_node(super_source)
+# for node in temp_graph.nodes():
+#     if node.startswith("dummy"):
+#         temp_graph.add_edge(super_source, node)
+#         # Add capacity to the edge
+#         temp_graph[super_source][node]['Capacity'] = 10000
+# 
+# value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
+# print("Min-cut is", value)
+# 
+# flow_value, flow_dict = nx.maximum_flow(temp_graph, super_source, super_sink, capacity = "Capacity")
+# 
+# print("Maximum flow value:", flow_value)
+# 
+# bottlenecks = []
+# for u, v, data in temp_graph.edges(data=True):
+#     if not u.startswith("dummy"):
+#         flow = flow_dict[u][v]  # Flow along this edge
+#         capacity = data['Capacity']  # Edge capacity
+#         name = data["Name"] + f" {u} -> {v}" if "Name" in data.keys() else f"{u} -> {v}"
+#         if flow == capacity:  # Fully saturated edge
+#             bottlenecks.append(name)
+# 
+# print("Bottleneck edges:", bottlenecks)
+
+# for m in problem.third_stages:
+#     for n in m.nodes:
+#         for t in problem.traders:
+#             lhs = sum(get_value_from_solution(f"x_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") - get_value_from_solution(f"y_plus[{n.node_id},{m_tilde.stage_id},{t.trader_id},{k.commodity_id}]") for k in problem.commodities for m_tilde in m.all_parents + [m] if m.hour == m_tilde.hour)
+#             rhs = sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for k in problem.commodities)
+#             # if lhs != rhs:
+#             #     breakpoint()
 
 capacity_used = []
 for m in problem.third_stages:
@@ -148,15 +142,15 @@ for m in problem.third_stages:
         if n.production_capacity[problem.commodities[0]] > 0:
             q_production = sum(get_value_from_solution(f"q_production[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for k in problem.commodities)
             production_used += [q_production / n.production_capacity[problem.commodities[0]]]
-            if q_production < n.production_capacity[problem.commodities[0]] and q_production > 0:
+            # if q_production < n.production_capacity[problem.commodities[0]] and q_production > 0:
                 # print("Production capacity not used:", n.name, q_production, n.production_capacity[problem.commodities[0]])
-                pass
+                # pass
 
 print("Average production used:", sum(production_used) / len(production_used))
 print("Number of nodes used on full production capacity:", sum(1 for c in production_used if c >= 1) / len(problem.third_stages))
 print("Max production used:", max(production_used))
 
-all_storage = sum(get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for m in problem.third_stages for n in m.nodes for k in problem.commodities)
+all_storage = sum(m.probability * get_value_from_solution(f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]") for t in problem.traders for m in problem.third_stages for n in m.nodes for k in problem.commodities)
 print("Total storage", all_storage)
 
 if second_hand_market:

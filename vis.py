@@ -87,21 +87,21 @@ def interactive_plot(gdf_pipes, gdf_facilities, extra_info=False, labels_ruud=Fa
     ))
 
     # Add arrows for flow direction
-    fig.add_trace(go.Scattermapbox(
-        lat=arrow_latitudes,
-        lon=arrow_longitudes,
-        mode='markers',
-        marker=go.scattermapbox.Marker(
-            size=100,
-            symbol='arrow-bar-up',
-            angle=arrow_angles,  # This sets the direction of the arrows
-            color='black',
-            allowoverlap=False
-        ),
-        text=arrow_texts,
-        hoverinfo='text',
-        name='Flow Direction'
-    ))
+    # fig.add_trace(go.Scattermapbox(
+    #     lat=arrow_latitudes,
+    #     lon=arrow_longitudes,
+    #     mode='markers',
+    #     marker=go.scattermapbox.Marker(
+    #         size=100,
+    #         symbol='arrow-bar-up',
+    #         angle=arrow_angles,  # This sets the direction of the arrows
+    #         color='black',
+    #         allowoverlap=False
+    #     ),
+    #     text=arrow_texts,
+    #     hoverinfo='text',
+    #     name='Flow Direction'
+    # ))
 
 
     # Set up the layout for the map
