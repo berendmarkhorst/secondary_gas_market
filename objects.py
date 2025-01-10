@@ -161,6 +161,14 @@ class Problem:
         # Objective function
         objective = 0
 
+        # Debug helpers
+        model._storage_costs = {}
+        model._sales = {}
+        model._production_costs = {}
+        model._flow_costs = {}
+        model._entry_costs = {}
+        model._exit_costs = {}
+
         # First part of the objective
         for m in self.stages:
             for k in self.commodities:
@@ -173,6 +181,10 @@ class Problem:
                     for t in self.traders:
                         supplier_entry_costs = (x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.entry_costs[(t, k)]
                         supplier_exit_costs = (x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.exit_costs[(t, k)]
+
+                        model._entry_costs[m, n, t, k] = supplier_entry_costs
+                        model._exit_costs[m, n, t, k] = supplier_exit_costs
+
                         objective -= self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs)
 
                         if m.name == "intra day" or first_stage_constraint:
@@ -180,6 +192,11 @@ class Problem:
                             storage_costs = w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
                             flow_costs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
                             sales = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] * n.sales_prices[t, d] for d in self.d_dict[k])
+
+                            model._storage_costs[m,n,t,k] = storage_costs
+                            model._sales[m,n,t,k] = sales
+                            model._production_costs[m,n,t,k] = production_costs
+                            model._flow_costs[m,n,t,k] = flow_costs
 
                             objective += self.stages[m.stage_id - 1].probability * (sales - production_costs - storage_costs - flow_costs) # - (surplus_entry[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + surplus_exit[t.trader_id, n.node_id, m.stage_id, k.commodity_id]) * 100000
 
@@ -208,7 +225,7 @@ class Problem:
             stages = self.third_stages
         for m in stages:
             for a in self.arcs:
-                model.addConstr(gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * self.stages[m.stage_id-1].get_arc(a).arc_capacity,
+                model.addConstr(gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * m.get_arc(a).arc_capacity, # self.stages[m.stage_id-1]
                                 name=f"eq1b[{m.stage_id},{a}]")
 
         # Equation 1c

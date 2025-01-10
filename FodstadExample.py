@@ -204,7 +204,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                     else:
                         sales_prices[(t, "gas_or_mix")] = 0
                     continue
-                elif name == "EMDEN" or name == "DORNUM" or name == "Germany":
+                elif (name == "EMDEN" or name == "DORNUM" or name == "Germany") and (hour_id == 1 or hour_id == 3):
                     if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                         extra = 3
                     elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
@@ -213,7 +213,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                         extra = -3
                     elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                         extra = -3
-                elif name == "ZEEBRUGGE" or name == "Zeebrugge":
+                elif (name == "ZEEBRUGGE" or name == "Zeebrugge") and (hour_id == 1 or hour_id == 3):
                     if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                         extra = 2
                     elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
@@ -253,7 +253,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
                 parent = stages[-1]
             else:
                 parent = stages[nr_hours-1]
-            probability = probabilities2[stage_id-2] * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+            probability = probabilities2[stage_id-2] # * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
             stage = Stage(id, "day ahead", probability, stage_nodes, stage_arcs, parent, hour_id)
         else:
             if hour_id > 1:
@@ -261,7 +261,7 @@ for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
             else:
                 parent_id = parents3[stage_id - nr_stage2_nodes - 2] + (nr_hours - 1)
                 parent = [stage for stage in stages if stage.stage_id == parent_id][0]
-            probability = probabilities3[stage_id - nr_stage2_nodes - 2] * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+            probability = probabilities3[stage_id - nr_stage2_nodes - 2] # * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
             stage = Stage(id, "intra day", probability, stage_nodes, stage_arcs, parent, hour_id)
 
         stages.append(stage)
@@ -293,3 +293,21 @@ model.setParam('TimeLimit', 36000)
 
 model.optimize()
 problem.save_solution(model, f"{output_file}.json")
+
+total_sales = sum(m.probability * model._sales[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total sales", total_sales)
+
+total_storage = sum(m.probability * model._storage_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total storage costs", total_storage)
+
+total_production = sum(m.probability * model._production_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total production costs", total_production)
+
+total_flow_costs = sum(m.probability * model._flow_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total flow costs", total_flow_costs)
+
+total_entry_costs = sum(m.probability * model._entry_costs[m, n, t, k].getValue() for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total entry costs", total_entry_costs)
+
+total_exit_costs = sum(m.probability * model._exit_costs[m, n, t, k].getValue() for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+print("Total exit costs", total_exit_costs)

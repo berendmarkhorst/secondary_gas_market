@@ -13,7 +13,7 @@ first_stage_constraint = False
 nr_hours = 4
 production_values = False
 booked_capacity = False
-flow_values = False
+flow_values = True
 storage_values = False
 benefit_large_traders = False
 interactive_plot = False
@@ -371,15 +371,24 @@ if storage_values:
     for m in problem.third_stages:
         storage = {}
         for n in m.nodes:
-            storage[n.name] = sum(solution[f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"v[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for k in problem.commodities)
+            storage[n.name] = sum(solution[f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]"] if f"w_plus[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id}]" in solution.keys() else 0 for t in problem.traders for k in problem.commodities)
 
-        plt.bar([str(k) for k in storage.keys()], storage.values())
+        # Make all keys lowercase strings
+        storage = {k.lower(): v for k, v in storage.items()}
 
-        # Rotate the x labels 45 degrees
-        plt.xticks(rotation=45)
+        # Sort the keys from the dictionary alphabetically
+        storage = dict(sorted(storage.items(), reverse=True))
 
-        plt.title(f'Storage values at scenario node {m.stage_id}')
-        plt.ylabel("Storage values")
-        plt.xlabel("Nodes")
+        # Plot the storage values
+        plt.barh([str(k) for k in storage.keys()], storage.values())
+
+        # Make the value on the y-axis red if the string is a sink
+        for i, key in enumerate(storage.keys()):
+            if key in [s.lower() for s in sinks]:
+                plt.gca().get_yticklabels()[i].set_color('red')
+
+        plt.title(f"Insert into storage at scenario node {m.stage_id}")
+        plt.xlabel("Storage values")
+        plt.ylabel("Nodes")
 
         plt.show()
