@@ -1884,3 +1884,133 @@ Iteration    Objective       Primal Inf.    Dual Inf.      Time
 
 Solved in 35328 iterations and 3.04 seconds (1.87 work units)
 Optimal objective  3.270807185e+04
+
+Gurobi 11.0.3 (mac64[x86]) logging started Mon Jan 13 09:26:59 2025
+
+Set parameter LogFile to value "Results/result_v2_1.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 267384 rows, 357816 columns and 1175096 nonzeros
+Model fingerprint: 0x1cdbf913
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 241266 rows and 311297 columns
+Presolve time: 0.99s
+Presolved: 26118 rows, 46519 columns, 125506 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.30s
+
+Barrier statistics:
+ Free vars  : 1014
+ AA' NZ     : 8.582e+04
+ Factor NZ  : 7.676e+05 (roughly 36 MB of memory)
+ Factor Ops : 7.269e+07 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   2.19595216e+06  3.61401705e+06  1.58e+04 1.31e+00  1.98e+03     1s
+   1   8.10901110e+04  3.24002180e+06  3.45e+03 8.05e-01  5.38e+02     1s
+   2  -4.01247401e+05  1.71994836e+06  6.12e+02 5.96e-02  8.95e+01     1s
+   3  -1.87152857e+05  4.28942191e+05  5.47e+01 2.44e-03  1.33e+01     2s
+   4  -5.19272719e+04  1.85384173e+05  1.45e+01 5.53e-04  4.47e+00     2s
+   5   1.27514227e+04  1.06810611e+05  2.38e+00 1.42e-04  1.44e+00     2s
+   6   2.54561478e+04  5.15314057e+04  7.45e-01 1.61e-05  3.92e-01     2s
+   7   3.03329076e+04  3.98975485e+04  1.91e-01 1.18e-05  1.38e-01     2s
+   8   3.19600268e+04  3.51980270e+04  4.33e-02 1.37e-05  4.57e-02     2s
+   9   3.24931775e+04  3.42408670e+04  1.42e-02 1.42e-05  2.41e-02     2s
+  10   3.26987040e+04  3.36446596e+04  6.62e-03 1.00e-05  1.30e-02     2s
+  11   3.27533854e+04  3.32749527e+04  4.94e-03 8.07e-06  7.30e-03     2s
+  12   3.28699075e+04  3.31248043e+04  1.56e-03 7.53e-06  3.51e-03     2s
+  13   3.28936974e+04  3.30529348e+04  9.29e-04 5.48e-06  2.19e-03     2s
+  14   3.29243806e+04  3.29715591e+04  1.93e-04 2.72e-06  6.43e-04     2s
+  15   3.29324592e+04  3.29481250e+04  4.78e-05 1.22e-06  2.12e-04     2s
+  16   3.29353182e+04  3.29377685e+04  4.16e-06 2.99e-07  3.29e-05     2s
+  17   3.29356676e+04  3.29356874e+04  1.78e-07 1.98e-08  2.81e-07     2s
+
+Barrier performed 17 iterations in 2.44 seconds (1.13 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   36013    3.2935685e+04   0.000000e+00   1.003324e+03      5s
+Extra simplex iterations after uncrush: 12617
+   37111    3.2935685e+04   0.000000e+00   0.000000e+00      6s
+
+Solved in 37111 iterations and 6.24 seconds (2.22 work units)
+Optimal objective  3.293568499e+04
+
+Gurobi 11.0.3 (mac64[x86]) logging started Fri Jan 17 12:59:23 2025
+
+Set parameter LogFile to value "Results/result_v2_1.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 267384 rows, 357816 columns and 1175096 nonzeros
+Model fingerprint: 0x1cdbf913
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e-02, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 241266 rows and 311297 columns
+Presolve time: 2.72s
+Presolved: 26118 rows, 46519 columns, 125506 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.96s
+
+Barrier statistics:
+ Free vars  : 1014
+ AA' NZ     : 8.582e+04
+ Factor NZ  : 7.676e+05 (roughly 36 MB of memory)
+ Factor Ops : 7.269e+07 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   2.19595216e+06  3.61401705e+06  1.58e+04 1.31e+00  1.98e+03     4s
+   1   8.10901110e+04  3.24002180e+06  3.45e+03 8.05e-01  5.38e+02     4s
+   2  -4.01247401e+05  1.71994836e+06  6.12e+02 5.96e-02  8.95e+01     4s
+   3  -1.87152857e+05  4.28942191e+05  5.47e+01 2.44e-03  1.33e+01     5s
+   4  -5.19272719e+04  1.85384173e+05  1.45e+01 5.53e-04  4.47e+00     5s
+   5   1.27514227e+04  1.06810611e+05  2.38e+00 1.42e-04  1.44e+00     5s
+   6   2.54561478e+04  5.15314057e+04  7.45e-01 1.61e-05  3.92e-01     5s
+   7   3.03329076e+04  3.98975485e+04  1.91e-01 1.18e-05  1.38e-01     5s
+   8   3.19600268e+04  3.51980270e+04  4.33e-02 1.37e-05  4.57e-02     5s
+   9   3.24931775e+04  3.42408670e+04  1.42e-02 1.42e-05  2.41e-02     5s
+  10   3.26987040e+04  3.36446596e+04  6.62e-03 1.00e-05  1.30e-02     5s
+  11   3.27533854e+04  3.32749527e+04  4.94e-03 8.07e-06  7.30e-03     6s
+  12   3.28699075e+04  3.31248043e+04  1.56e-03 7.53e-06  3.51e-03     6s
+  13   3.28936974e+04  3.30529348e+04  9.29e-04 5.48e-06  2.19e-03     6s
+  14   3.29243806e+04  3.29715591e+04  1.93e-04 2.72e-06  6.43e-04     6s
+  15   3.29324592e+04  3.29481250e+04  4.78e-05 1.22e-06  2.12e-04     6s
+  16   3.29353182e+04  3.29377685e+04  4.16e-06 2.99e-07  3.29e-05     6s
+
+Barrier performed 16 iterations in 6.44 seconds (1.10 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 12617
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   37111    3.2935685e+04   0.000000e+00   0.000000e+00     10s
+
+Solved in 37111 iterations and 9.66 seconds (2.22 work units)
+Optimal objective  3.293568499e+04

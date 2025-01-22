@@ -1,0 +1,84 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Jan 21 15:53:29 2025
+
+Set parameter LogFile to value "Results/result_B20.5.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 267384 rows, 357816 columns and 1175096 nonzeros
+Model fingerprint: 0xe094fa60
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 241133 rows and 307406 columns
+Presolve time: 1.50s
+Presolved: 26251 rows, 50410 columns, 129802 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.53s
+
+Barrier statistics:
+ Free vars  : 1013
+ AA' NZ     : 8.641e+04
+ Factor NZ  : 7.745e+05 (roughly 40 MB of memory)
+ Factor Ops : 7.419e+07 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -5.54554394e+06  1.07796374e+07  1.58e+04 2.72e+00  6.02e+03     2s
+   1  -5.86826220e+06  9.11225244e+06  3.29e+03 1.73e+00  1.45e+03     2s
+   2  -3.59595815e+06  5.05001162e+06  4.79e+02 1.50e-01  2.54e+02     2s
+   3  -1.09762468e+06  1.06918082e+06  4.64e+01 1.26e-03  3.92e+01     2s
+   4  -3.92806854e+05  3.51668324e+05  1.43e+01 2.58e-04  1.26e+01     2s
+   5  -7.68977940e+04  1.41662058e+05  2.50e+00 9.79e-05  3.21e+00     2s
+   6  -2.29554350e+04  4.86848420e+04  7.10e-01 3.32e-05  1.01e+00     2s
+   7  -4.92353677e+03  2.95534040e+04  2.12e-01 2.19e-05  4.65e-01     2s
+   8   2.05728217e+03  1.32834014e+04  6.00e-02 8.62e-06  1.51e-01     3s
+   9   4.11926990e+03  1.01940907e+04  3.30e-02 5.54e-06  8.18e-02     3s
+  10   4.88450431e+03  9.25994610e+03  2.37e-02 4.39e-06  5.89e-02     3s
+  11   5.30599304e+03  9.10996912e+03  1.89e-02 4.18e-06  5.09e-02     3s
+  12   5.86147893e+03  8.43812939e+03  1.27e-02 3.13e-06  3.45e-02     3s
+  13   6.40839880e+03  8.18968686e+03  6.96e-03 2.69e-06  2.35e-02     3s
+  14   6.70208293e+03  7.58673520e+03  3.87e-03 1.34e-06  1.18e-02     3s
+  15   6.98280294e+03  7.34805904e+03  1.04e-03 3.66e-06  4.77e-03     3s
+  16   7.08523851e+03  7.24038165e+03  1.81e-04 2.51e-06  1.98e-03     3s
+  17   7.11662890e+03  7.15715696e+03  1.90e-05 9.32e-07  5.12e-04     3s
+  18   7.12148071e+03  7.13970171e+03  4.13e-06 4.59e-07  2.30e-04     3s
+  19   7.12280174e+03  7.12291061e+03  1.53e-07 1.33e-08  1.41e-06     3s
+  20   7.12286976e+03  7.12286996e+03  2.00e-10 6.22e-10  2.44e-09     3s
+  21   7.12286990e+03  7.12286990e+03  7.34e-09 1.39e-12  1.56e-12     3s
+
+Barrier solved model in 21 iterations and 3.21 seconds (1.22 work units)
+Optimal objective 7.12286990e+03
+
+Crossover log...
+
+    6908 DPushes remaining with DInf 0.0000000e+00                 3s
+       0 DPushes remaining with DInf 0.0000000e+00                 3s
+
+     837 PPushes remaining with PInf 0.0000000e+00                 3s
+
+Solved with dual simplex
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   32665    7.1229657e+03   0.000000e+00   4.992427e+04      5s
+   40496    7.1231079e+03   0.000000e+00   6.806781e+03     10s
+   44981    7.1231241e+03   0.000000e+00   3.058033e+03     15s
+   48028    7.1231287e+03   0.000000e+00   1.343000e+03     20s
+   51075    7.1231315e+03   0.000000e+00   4.988475e+02     25s
+   53568    7.1231333e+03   0.000000e+00   1.527897e+03     30s
+   56338    7.1231346e+03   0.000000e+00   2.157411e+02     35s
+   59429    7.1231361e+03   0.000000e+00   2.013482e+02     40s
+   62753    7.1231372e+03   0.000000e+00   2.506250e+01     45s
+Extra simplex iterations after uncrush: 35358
+   63317    7.1228699e+03   0.000000e+00   0.000000e+00     47s
+
+Solved in 63317 iterations and 46.56 seconds (31.41 work units)
+Optimal objective  7.122869903e+03

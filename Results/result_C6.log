@@ -1,0 +1,82 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Wed Jan 22 13:43:34 2025
+
+Set parameter LogFile to value "Results/result_C6.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 267384 rows, 357816 columns and 1175096 nonzeros
+Model fingerprint: 0xd86a08d3
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e-01, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 240065 rows and 305087 columns
+Presolve time: 1.31s
+Presolved: 27319 rows, 52729 columns, 137107 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.44s
+
+Barrier statistics:
+ Free vars  : 1020
+ AA' NZ     : 9.268e+04
+ Factor NZ  : 8.802e+05 (roughly 40 MB of memory)
+ Factor Ops : 1.084e+08 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -6.15417093e+06  1.06441921e+07  1.90e+04 2.72e+00  6.03e+03     2s
+   1  -6.11942478e+06  9.22493913e+06  3.76e+03 1.70e+00  1.40e+03     2s
+   2  -3.75367475e+06  5.07482468e+06  6.45e+02 1.56e-01  2.52e+02     2s
+   3  -1.08184353e+06  1.14404257e+06  6.64e+01 1.84e-03  3.80e+01     2s
+   4  -3.81930523e+05  4.68721898e+05  1.56e+01 5.50e-04  1.32e+01     2s
+   5  -1.12830634e+05  2.93490371e+05  3.29e+00 3.18e-04  5.60e+00     2s
+   6  -2.65901257e+04  6.25889949e+04  6.29e-01 5.15e-05  1.16e+00     2s
+   7  -5.00648193e+03  2.90008953e+04  1.17e-01 2.48e-05  4.25e-01     2s
+   8   1.39878105e+03  1.42664845e+04  2.89e-02 1.05e-05  1.58e-01     2s
+   9   2.81277279e+03  1.01872536e+04  1.59e-02 6.13e-06  9.08e-02     2s
+  10   3.65184230e+03  8.15108207e+03  9.23e-03 4.28e-06  5.54e-02     2s
+  11   4.41401728e+03  7.08567995e+03  3.98e-03 2.97e-06  3.27e-02     2s
+  12   4.77036860e+03  6.62119648e+03  1.96e-03 2.31e-06  2.25e-02     3s
+  13   4.98559134e+03  5.95151181e+03  9.49e-04 1.26e-06  1.18e-02     3s
+  14   5.16816344e+03  5.74944164e+03  2.07e-04 1.09e-06  7.01e-03     3s
+  15   5.22329685e+03  5.49398464e+03  6.75e-05 7.49e-07  3.26e-03     3s
+  16   5.23293249e+03  5.42544802e+03  4.78e-05 5.79e-07  2.32e-03     3s
+  17   5.24140018e+03  5.36840228e+03  3.26e-05 8.82e-07  1.54e-03     3s
+  18   5.25140401e+03  5.30564837e+03  1.51e-05 1.03e-06  6.58e-04     3s
+  19   5.26098689e+03  5.26583662e+03  1.83e-06 5.10e-07  5.96e-05     3s
+  20   5.26361050e+03  5.26377513e+03  6.67e-08 8.52e-08  2.03e-06     3s
+  21   5.26373687e+03  5.26374070e+03  1.79e-09 3.25e-09  4.74e-08     3s
+  22   5.26374056e+03  5.26374056e+03  8.05e-09 8.67e-11  7.19e-11     3s
+
+Barrier solved model in 22 iterations and 3.02 seconds (1.30 work units)
+Optimal objective 5.26374056e+03
+
+Crossover log...
+
+    6568 DPushes remaining with DInf 0.0000000e+00                 3s
+       0 DPushes remaining with DInf 0.0000000e+00                 3s
+
+    1657 PPushes remaining with PInf 0.0000000e+00                 3s
+       0 PPushes remaining with PInf 0.0000000e+00                 3s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 0.0000000e+00      3s
+
+
+Solved with barrier
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   14090    5.2639088e+03   0.000000e+00   2.184991e+04      5s
+   20868    5.2639598e+03   0.000000e+00   3.687500e+01     10s
+Extra simplex iterations after uncrush: 13254
+   21446    5.2637406e+03   0.000000e+00   0.000000e+00     11s
+
+Solved in 21446 iterations and 11.33 seconds (7.40 work units)
+Optimal objective  5.263740564e+03
