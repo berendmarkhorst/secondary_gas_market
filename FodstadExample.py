@@ -244,7 +244,7 @@ def run_optimizer(input_file, output_file):
                     # continue
                 else:
                     parent = None
-                probability = probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
+                probability = 1 # probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
                 stage = Stage(id, "long term", probability, stage_nodes, stage_arcs, parent, hour_id)
             elif 1 < stage_id <= nr_stage2_nodes + 1:
                 if hour_id > 1:
@@ -280,7 +280,7 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model = problem.build_model(first_stage_constraint=False)
+    model = problem.build_model(first_stage_constraint=True)
 
     # Write gurobi output to file
     model.setParam('OutputFlag', 1)
@@ -311,7 +311,7 @@ def run_optimizer(input_file, output_file):
 # print("Total exit costs", total_exit_costs)
 
 input_file = "Data/OurData2.xlsx"
-output_file = "Results/result_C7"
+output_file = "Results/result_E_true_low_flow_costs_low_entry_costs"
 column_fuels = ["Gas", "Hydrogen"]
 
 run_optimizer(input_file, output_file)

@@ -8,7 +8,7 @@ import networkx as nx
 import numpy as np
 
 data_file = "Data/OurData2.xlsx"
-input_file = "Results/result_C9"
+input_file = "Results/result_E_false_low_flow_costs_low_entry_costs"
 first_stage_constraint = False
 
 nr_hours = 4
@@ -65,6 +65,7 @@ def experiment_b(beta_values):
 
 # experiment_b(np.linspace(0.5, 1, 11))
 # experiment_b(np.linspace(0, 0.9, 19))
+# experiment_b([0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1])
 
 def get_value_from_solution(key, solution):
     return solution[key] if key in solution.keys() else 0
@@ -127,50 +128,76 @@ def entry_and_exit_capacity_bought():
     total_entry_capacity_bought = {}
     total_exit_capacity_bought = {}
 
-    print("Entry cap sold by TSO", sum(get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities))
-    print("Exit cap sold by TSO", sum(get_value_from_solution(f"s_minus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities))
+    print("Entry cap sold by TSO", sum(m.probability * get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities))
+    print("Exit cap sold by TSO", sum(m.probability * get_value_from_solution(f"s_minus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities))
 
-    total_entry_capacity_bought[1] = sum(get_value_from_solution(f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities if m.name == "long term")
-    total_entry_capacity_bought[2] = sum(m.probability * (get_value_from_solution(f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution)) for m in problem.second_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-    total_entry_capacity_bought[3] = sum(m.probability * (get_value_from_solution(f"x_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_plus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution)) for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+    def capacity_traded(key):
+        temp = {}
 
-    total_exit_capacity_bought[1] = sum(get_value_from_solution(f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) for m in problem.stages for n in problem.stages[0].nodes for t in problem.traders for k in problem.commodities if m.name == "long term")
-    total_exit_capacity_bought[2] = sum(m.probability * (get_value_from_solution(f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution)) for m in problem.second_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-    total_exit_capacity_bought[3] = sum(m.probability * (get_value_from_solution(f"x_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) - get_value_from_solution(f"y_HOI_minus[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution)) for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+        temp[1] = sum(m.probability * get_value_from_solution(f"{key}[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities if m.name == "long term")
+        temp[2] = sum(m.probability * get_value_from_solution(f"{key}[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) for m in problem.second_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+        temp[3] = sum(m.probability * get_value_from_solution(f"{key}[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]", solution) for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
 
-    # Extract keys and values
-    keys = list(total_entry_capacity_bought.keys())
-    values1 = list(total_entry_capacity_bought.values())
-    values2 = list(total_exit_capacity_bought.values())
+        return temp
 
-    breakpoint()
+    total_entry_capacity_bought = capacity_traded("x_plus")
+    total_exit_capacity_bought = capacity_traded("x_minus")
+    total_entry_capacity_sold = capacity_traded("y_plus")
+    total_exit_capacity_sold = capacity_traded("y_minus")
 
-    # Define the width of the bars
-    bar_width = 0.25
+    total_entry_sold_by_tso = {}
+    total_exit_sold_by_tso = {}
 
-    # Define the positions of the bars
-    r1 = range(len(keys))
-    r2 = [x + bar_width for x in r1]
+    for stages, stage in zip([problem.stages[:4], problem.second_stages, problem.third_stages], range(1, 4)):
+        total_entry_sold_by_tso[stage] = sum(m.probability * get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in stages for n in m.nodes for k in problem.commodities)
+        total_exit_sold_by_tso[stage] = sum(m.probability * get_value_from_solution(f"s_minus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in stages for n in m.nodes for k in problem.commodities)
 
-    # Create the bar plots
-    plt.bar(r1, values1, width=bar_width, label="Entry capacity")
-    plt.bar(r2, values2, width=bar_width, label="Exit capacity")
+    print(total_entry_sold_by_tso)
+    print(total_exit_sold_by_tso)
 
-    # Add labels and title
-    plt.xlabel('Stages')
-    plt.ylabel('Capacity Bought')
-    plt.title('Entry and exit capacity bought in each stage')
+    # breakpoint()
 
-    # Add the x-ticks
-    plt.xticks([r + bar_width / 2 for r in range(len(keys))], keys)
+    # Make two plots next to each other
+    fig, axs = plt.subplots(1, 2)
 
-    # Add legend
-    plt.legend()
+    max_y_value = max(max(total_entry_capacity_bought.values()), max(total_exit_capacity_bought.values())) + 50
+
+    for i, values1, values2, title in zip(range(2), [total_entry_capacity_bought, total_exit_capacity_bought], [total_entry_capacity_sold, total_exit_capacity_sold], ["entry", "exit"]):
+        # Extract keys and values
+        keys = list(values1.keys())
+        values1 = list(values1.values())
+        values2 = list(values2.values())
+
+        # Define the width of the bars
+        bar_width = 0.25
+
+        # Define the positions of the bars
+        r1 = range(len(keys))
+        r2 = [x + bar_width for x in r1]
+
+        # Create the bar plots
+        axs[i].bar(r1, values1, width=bar_width, label="Bought")
+        axs[i].bar(r2, values2, width=bar_width, label="Sold")
+
+        # Add labels and title
+        axs[i].set_xlabel('Stages')
+        axs[i].set_ylabel('Amount of Capacity')
+        axs[i].set_title(f'Trade of {title} capacity in each stage')
+
+        # Add the x-ticks
+        axs[i].set_xticks([r + bar_width / 2 for r in range(len(keys))], keys)
+
+        axs[i].set_ylim([0, max_y_value])
+
+        # Add legend
+        axs[i].legend()
 
     # Show the plot
     plt.show()
 
 entry_and_exit_capacity_bought()
+
+breakpoint()
 
 def impact_minimum_contracts(input_files, labels):
     result = {}
@@ -188,7 +215,7 @@ def impact_minimum_contracts(input_files, labels):
     plt.title("Profit different minimum contract levels for Equinor")
     plt.show()
 
-impact_minimum_contracts([f"Results/result_C{level}" for level in range(10)], list(range(10)))
+# impact_minimum_contracts([f"Results/result_C{level}" for level in range(10)], list(range(10)))
 
 def deviations_in_storage():
     all_storage = {}
@@ -212,7 +239,7 @@ def deviations_in_storage():
 
     plt.show()
 
-deviations_in_storage()
+# deviations_in_storage()
 
 def deviations_in_production():
     production = {}
@@ -261,16 +288,16 @@ def deviations_in_production():
 
     plt.show()
 
-deviations_in_production()
-
-breakpoint()
+# deviations_in_production()
 
 def profit_per_unit():
     profit, sales_dict, production_costs_dict, storage_costs_dict, flow_costs_dict, entry_costs_dict, exit_costs_dict = get_objective(problem, solution)
 
-    return profit / sum(get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]", solution) for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
+    return profit / sum(m.probability * get_value_from_solution(f"q_sales[{t.trader_id},{n.node_id},{m.stage_id},{k.commodity_id},gas_or_mix]", solution) for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
 
 print("Profit per unit is", profit_per_unit())
+
+# breakpoint()
 
 def get_total_entry_capacity_sold_first_stage(problem, solution):
     # Total entry capacity sold in the first stage
@@ -281,7 +308,7 @@ def get_total_entry_capacity_sold_first_stage(problem, solution):
 total_entry_capacity_first_stage = get_total_entry_capacity_sold_first_stage(problem, solution)
 print("Total entry capacity first stage", total_entry_capacity_first_stage)
 
-def different_betas(input_files):
+def different_betas(input_files, x_values):
     result = {}
     result2 = {}
     for input_file in input_files:
@@ -300,13 +327,17 @@ def different_betas(input_files):
 
     plt.plot([i for i, j in result.keys()], list(result.values()), "-o")
     plt.title("Total entry capacity sold in the first stage")
+    plt.xticks([i for i, j in result.keys()], x_values)
     plt.show()
 
     plt.plot([i for i, j in result2.keys()], list(result2.values()), "-o")
     plt.title("Profit")
+    plt.xticks([i for i, j in result2.keys()], x_values)
     plt.show()
 
-different_betas([f"Results/result_B4{beta}" for beta in list(np.linspace(0, 0.9, 19)) + [0.95, 0.96, 0.97, 0.98, 0.99, 1]])
+# different_betas([f"Results/result_B4{beta}" for beta in [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1]], [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1])
+
+# breakpoint()
 
 # Total sales
 total_sales = 0
@@ -330,7 +361,7 @@ print("Total production", total_production)
 sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE", "POLAND"]
 
 # for node in problem.digraph.nodes():
-#     break
+#     # break
 #     if node not in sinks:
 #         # Check if capacity incoming equals capacity outgoing
 #         in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
@@ -341,7 +372,7 @@ sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "
 #         # If the difference is bigger than 10 units, print the node
 #         if production_capacity + in_capacity > out_capacity:
 #             print(node, production_capacity + in_capacity, out_capacity)
-
+#
 # for node in problem.digraph.nodes():
 #     break
 #     production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
@@ -351,23 +382,23 @@ sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "
 #
 #     if capacity < production_capacity:
 #         print(node, capacity, production_capacity)
-
+#
 # # Find min cut
 # temp_graph = problem.digraph.copy()
-# 
+#
 # for node in problem.digraph.nodes():
 #     if node not in sinks:
 #         temp_graph.add_edge(f"dummy_{node}", node)
 #         # Add capacity to the edge
 #         temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-# 
+#
 # # Add a super sink and connect all sinks
 # super_sink = 'super_sink'
 # for sink in sinks:
 #     temp_graph.add_edge(sink, super_sink)
 #     # Add capacity to the edge
 #     temp_graph[sink][super_sink]['Capacity'] = 10000
-# 
+#
 # super_source = 'super_source'
 # temp_graph.add_node(super_source)
 # for node in temp_graph.nodes():
@@ -375,7 +406,7 @@ sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "
 #         temp_graph.add_edge(super_source, node)
 #         # Add capacity to the edge
 #         temp_graph[super_source][node]['Capacity'] = 10000
-# 
+#
 # value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
 # print("Min-cut is", value)
 # 
