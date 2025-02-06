@@ -280,7 +280,7 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model = problem.build_model(first_stage_constraint=True)
+    model = problem.build_model(first_stage_constraint=False)
 
     # Write gurobi output to file
     model.setParam('OutputFlag', 1)
@@ -311,7 +311,7 @@ def run_optimizer(input_file, output_file):
 # print("Total exit costs", total_exit_costs)
 
 input_file = "Data/OurData2.xlsx"
-output_file = "Results/result_E_true_low_flow_costs_low_entry_costs"
+output_file = "Results/result_G"
 column_fuels = ["Gas", "Hydrogen"]
 
 run_optimizer(input_file, output_file)

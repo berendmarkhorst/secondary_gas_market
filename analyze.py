@@ -9,6 +9,7 @@ import numpy as np
 
 data_file = "Data/OurData2.xlsx"
 input_file = "Results/result_E_false_low_flow_costs_low_entry_costs"
+# input_file = "Results/result_G"
 first_stage_constraint = False
 
 nr_hours = 4
@@ -44,7 +45,7 @@ def experiment_b(beta_values):
         # for n in problem.stages[0].nodes:
         #     n.allowed_percentage = beta
 
-        output_file = f"Results/result_B4{beta}"
+        output_file = f"Results/result_F{beta}"
 
         # Save the problem instance to a file
         with open(f"{output_file}.pkl", "wb") as file:
@@ -197,8 +198,6 @@ def entry_and_exit_capacity_bought():
 
 entry_and_exit_capacity_bought()
 
-breakpoint()
-
 def impact_minimum_contracts(input_files, labels):
     result = {}
     for input_file, label in zip(input_files, labels):
@@ -288,7 +287,7 @@ def deviations_in_production():
 
     plt.show()
 
-# deviations_in_production()
+deviations_in_production()
 
 def profit_per_unit():
     profit, sales_dict, production_costs_dict, storage_costs_dict, flow_costs_dict, entry_costs_dict, exit_costs_dict = get_objective(problem, solution)
@@ -301,7 +300,7 @@ print("Profit per unit is", profit_per_unit())
 
 def get_total_entry_capacity_sold_first_stage(problem, solution):
     # Total entry capacity sold in the first stage
-    total_entry_capacity_first_stage = sum(get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities)
+    total_entry_capacity_first_stage = sum(m.probability * get_value_from_solution(f"s_plus[{n.node_id},{m.stage_id},{k.commodity_id}]", solution) for m in problem.stages for n in m.nodes for k in problem.commodities)
 
     return total_entry_capacity_first_stage
 
@@ -331,11 +330,13 @@ def different_betas(input_files, x_values):
     plt.show()
 
     plt.plot([i for i, j in result2.keys()], list(result2.values()), "-o")
-    plt.title("Profit")
+    plt.title("Profit under different pipe capacities")
+    plt.xlabel(r"Value of $\beta_1$,  $\beta_2$, and $\beta_3$")
+    plt.ylabel("Profit (euro)")
     plt.xticks([i for i, j in result2.keys()], x_values)
     plt.show()
 
-# different_betas([f"Results/result_B4{beta}" for beta in [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1]], [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1])
+different_betas([f"Results/result_F{beta}" for beta in [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1]], [0, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 1])
 
 # breakpoint()
 
@@ -360,59 +361,59 @@ print("Total production", total_production)
 
 sinks = ["EMDEN", "DORNUM", "ST.FERGUS", "EASINGTON", "TEESSIDE", "ZEEBRUGGE", "DUNKERQUE", "POLAND"]
 
-# for node in problem.digraph.nodes():
-#     # break
-#     if node not in sinks:
-#         # Check if capacity incoming equals capacity outgoing
-#         in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
-#         out_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
-#
-#         production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-#
-#         # If the difference is bigger than 10 units, print the node
-#         if production_capacity + in_capacity > out_capacity:
-#             print(node, production_capacity + in_capacity, out_capacity)
-#
-# for node in problem.digraph.nodes():
-#     break
-#     production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-#
-#     # Find all outgoing arcs from this node, and sum the capacities
-#     capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
-#
-#     if capacity < production_capacity:
-#         print(node, capacity, production_capacity)
-#
-# # Find min cut
-# temp_graph = problem.digraph.copy()
-#
-# for node in problem.digraph.nodes():
-#     if node not in sinks:
-#         temp_graph.add_edge(f"dummy_{node}", node)
-#         # Add capacity to the edge
-#         temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
-#
-# # Add a super sink and connect all sinks
-# super_sink = 'super_sink'
-# for sink in sinks:
-#     temp_graph.add_edge(sink, super_sink)
-#     # Add capacity to the edge
-#     temp_graph[sink][super_sink]['Capacity'] = 10000
-#
-# super_source = 'super_source'
-# temp_graph.add_node(super_source)
-# for node in temp_graph.nodes():
-#     if node.startswith("dummy"):
-#         temp_graph.add_edge(super_source, node)
-#         # Add capacity to the edge
-#         temp_graph[super_source][node]['Capacity'] = 10000
-#
-# value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
-# print("Min-cut is", value)
-# 
-# flow_value, flow_dict = nx.maximum_flow(temp_graph, super_source, super_sink, capacity = "Capacity")
-# 
-# print("Maximum flow value:", flow_value)
+for node in problem.digraph.nodes():
+    # break
+    if node not in sinks:
+        # Check if capacity incoming equals capacity outgoing
+        in_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.in_edges(node, data=True)])
+        out_capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+
+        production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+        # If the difference is bigger than 10 units, print the node
+        if production_capacity + in_capacity > out_capacity:
+            print(node, production_capacity + in_capacity, out_capacity)
+
+for node in problem.digraph.nodes():
+    break
+    production_capacity = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+    # Find all outgoing arcs from this node, and sum the capacities
+    capacity = sum([a["Capacity"] for _, _, a in problem.digraph.out_edges(node, data=True)])
+
+    if capacity < production_capacity:
+        print(node, capacity, production_capacity)
+
+# Find min cut
+temp_graph = problem.digraph.copy()
+
+for node in problem.digraph.nodes():
+    if node not in sinks:
+        temp_graph.add_edge(f"dummy_{node}", node)
+        # Add capacity to the edge
+        temp_graph[f"dummy_{node}"][node]['Capacity'] = [n.production_capacity[problem.commodities[0]] for n in problem.stages[0].nodes if n.name == node][0]
+
+# Add a super sink and connect all sinks
+super_sink = 'super_sink'
+for sink in sinks:
+    temp_graph.add_edge(sink, super_sink)
+    # Add capacity to the edge
+    temp_graph[sink][super_sink]['Capacity'] = 10000
+
+super_source = 'super_source'
+temp_graph.add_node(super_source)
+for node in temp_graph.nodes():
+    if node.startswith("dummy"):
+        temp_graph.add_edge(super_source, node)
+        # Add capacity to the edge
+        temp_graph[super_source][node]['Capacity'] = 10000
+
+value, cut = nx.minimum_cut(temp_graph, super_source, super_sink, capacity="Capacity")
+print("Min-cut is", value)
+
+flow_value, flow_dict = nx.maximum_flow(temp_graph, super_source, super_sink, capacity = "Capacity")
+
+print("Maximum flow value:", flow_value)
 # 
 # bottlenecks = []
 # for u, v, data in temp_graph.edges(data=True):
