@@ -345,10 +345,11 @@ class Problem:
         return model, vars
 
     def save_solution(self, vars, output_file: str):
-        solution = {}
         for name, var in vars.items():
-
+            solution = {}
             for keys, value in var.items():
-                solution[(name, *keys)] = value.x
+                solution[keys] = value.x
 
-        pd.Series(solution).to_csv(output_file, sep=";")
+            df = pd.Series(solution).to_frame()
+
+            df.to_csv(f"{output_file}_{name}.csv", sep=";")

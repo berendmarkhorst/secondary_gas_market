@@ -282,7 +282,7 @@ def run_optimizer(input_file, output_file):
     model.setParam('TimeLimit', 36000)
 
     model.optimize()
-    problem.save_solution(vars, f"{output_file}.csv")
+    problem.save_solution(vars, f"{output_file}")
 
 input_file = "Data/OurData2.xlsx"
 output_file = "Results/result_v2_A"
