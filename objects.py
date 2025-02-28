@@ -4,6 +4,8 @@ from gurobipy import GRB
 from typing import List, Dict, Tuple
 import json
 import pandas as pd
+import numpy as np
+from scipy.sparse import dok_matrix
 
 class Commodity:
     def __init__(self, commodity_id: int, name: str):
@@ -84,9 +86,9 @@ class Stage:
     def get_ids_all_parents(self):
         return [parent.stage_id for parent in self.all_parents]
 
-    def get_arc(self, arc: Tuple[int, int]):
+    def get_arc(self, id: int):
         """Returns the Arc object with the given source and sink."""
-        return [a for a in self.arcs if (a.source, a.sink) == arc][0]
+        return [a for a in self.arcs if a.arc_id == id][0]
 
 
 class Problem:
@@ -97,8 +99,9 @@ class Problem:
         self.digraph = digraph
         self.nodes = list(digraph.nodes)
         self.arcs = list(digraph.edges)
-        self.incoming_arcs = {digraph.nodes()[node]["ID"]: [arc for arc in self.arcs if arc[1] == node] for node in self.nodes}
-        self.outgoing_arcs = {digraph.nodes()[node]["ID"]: [arc for arc in self.arcs if arc[0] == node] for node in self.nodes}
+        self.arc_ids = [digraph.edges[arc]["ID"] for arc in digraph.edges]
+        self.incoming_arcs = {digraph.nodes()[node]["ID"]: [digraph.edges[arc]["ID"] for arc in digraph.edges if arc[1] == node] for node in self.nodes}
+        self.outgoing_arcs = {digraph.nodes()[node]["ID"]: [digraph.edges[arc]["ID"] for arc in digraph.edges if arc[0] == node] for node in self.nodes}
         self.stages = stages
         self.stage_ids = [stage.stage_id for stage in self.stages]  # Starts at 1!
         self.stage_ids_star = self.stage_ids[1:]  # Without 1!
@@ -142,21 +145,19 @@ class Problem:
         s_plus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_plus", lb=0.0)
         s_minus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_minus", lb=0.0)
         if first_stage_constraint:
-            f = model.addVars(self.trader_ids, self.arcs, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
+            f = model.addVars(self.trader_ids, self.arc_ids, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
             q_sales = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
             q_production = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="q_production", lb=0.0)
             v = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="v", lb=0.0)
             w_plus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
             w_minus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
         else:
-            f = model.addVars(self.trader_ids, self.arcs, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)
+            f = model.addVars(self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)
             q_sales = model.addVars(self.trader_ids, self.node_ids, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
             q_production = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
             v = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
             w_plus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
             w_minus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
-        # entry_capacity = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="entry_capacity", lb=0)
-        # exit_capacity = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="exit_capacity", lb=0)
 
         # Objective function
         objective = 0
@@ -173,11 +174,6 @@ class Problem:
         for m in self.stages:
             for k in self.commodities:
                 for n in m.nodes:
-                    # tso_entry_costs = entry_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_entry_costs[k]
-                    # tso_exit_costs = exit_capacity[n.node_id, m.stage_id, k.commodity_id] * n.tso_exit_costs[k]
-                    #
-                    # objective -= self.stages[m.stage_id - 1].probability * (tso_entry_costs + tso_exit_costs)
-
                     for t in self.traders:
                         supplier_entry_costs = (x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.entry_costs[(t, k)]
                         supplier_exit_costs = (x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.exit_costs[(t, k)]
@@ -190,7 +186,7 @@ class Problem:
                         if m.name == "intra day" or first_stage_constraint:
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
                             storage_costs = w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
-                            flow_costs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
+                            flow_costs = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
                             sales = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] * n.sales_prices[t, d] for d in self.d_dict[k])
 
                             model._storage_costs[m,n,t,k] = storage_costs
@@ -198,7 +194,7 @@ class Problem:
                             model._production_costs[m,n,t,k] = production_costs
                             model._flow_costs[m,n,t,k] = flow_costs
 
-                            objective += self.stages[m.stage_id - 1].probability * (sales - production_costs - storage_costs - flow_costs) # - (surplus_entry[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + surplus_exit[t.trader_id, n.node_id, m.stage_id, k.commodity_id]) * 100000
+                            objective += self.stages[m.stage_id - 1].probability * (sales - production_costs - storage_costs - flow_costs)
 
         model.setObjective(objective, gp.GRB.MAXIMIZE)
 
@@ -224,8 +220,8 @@ class Problem:
         else:
             stages = self.third_stages
         for m in stages:
-            for a in self.arcs:
-                model.addConstr(gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * m.get_arc(a).arc_capacity, # self.stages[m.stage_id-1]
+            for a in self.arc_ids:
+                model.addConstr(gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * m.get_arc(a).arc_capacity, # self.stages[m.stage_id-1]
                                 name=f"eq1b[{m.stage_id},{a}]")
 
         # Equation 1c
@@ -261,8 +257,8 @@ class Problem:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
-                        lhs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum((1 - self.loss_rate) * f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for a in self.incoming_arcs[n.node_id])
-                        rhs = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) + w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k.commodity_id] for a in self.outgoing_arcs[n.node_id])
+                        lhs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum((1 - self.loss_rate) * f[t.trader_id, a, m.stage_id, k.commodity_id] for a in self.incoming_arcs[n.node_id])
+                        rhs = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) + w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for a in self.outgoing_arcs[n.node_id])
                         model.addConstr(lhs == rhs, name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1f
@@ -343,162 +339,16 @@ class Problem:
                     rhs = s_plus[n.node_id, m.stage_id, k.commodity_id] + gp.quicksum(y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] for t in self.traders)
                     model.addConstr(lhs == rhs, name=f"eq1t[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
-        return model
+        vars = {"x_plus": x_plus, "x_minus": x_minus, "y_plus": y_plus, "y_minus": y_minus, "s_plus": s_plus, "s_minus": s_minus,
+                "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus}
 
-    def save_solution(self, model, output_file: str):
+        return model, vars
+
+    def save_solution(self, vars, output_file: str):
         solution = {}
-        for var in model.getVars():
-            if var.x > 0:
-                solution[var.varName] = var.x
+        for name, var in vars.items():
 
-        # Store dictionary in a file
-        with open(output_file, "w") as file:
-            json.dump(solution, file)
+            for keys, value in var.items():
+                solution[(name, *keys)] = value.x
 
-
-### ZOOI ###
-
-        # NEW CONSTRAINT
-        # for m in self.third_stages:
-        #     for t in self.traders:
-        #         for k in self.commodities:
-        #             for n in m.nodes:
-        #                 model.addConstr(surplus_entry[t.trader_id, n.node_id, m.stage_id, k.commodity_id] >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m]))
-        #                 model.addConstr(surplus_exit[t.trader_id, n.node_id, m.stage_id, k.commodity_id] >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) - gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m]))
-
-        # NEW CONSTRAINT: je kan nooit meer capacity verkopen dan je hebt gekocht
-        # for m in self.stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             for k in self.commodities:
-        #                 model.addConstr(y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= sum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents), name=f"NEW1[{m.stage_id},{n.node_id},{t.trader_id},{k.commodity_id}]")
-        #                 model.addConstr(y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= sum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents), name=f"NEW2[{m.stage_id},{n.node_id},{t.trader_id},{k.commodity_id}]")
-
-        # # Equation 1c TEMP
-        # for m in self.second_stages + self.third_stages:
-        #     for n in m.nodes:
-        #         for k in self.commodities:
-        #             model.addConstr(s_minus[n.node_id, m.stage_id, k.commodity_id] <= 0,
-        #                             name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
-        #
-        # # Equation 1d TEMP
-        # for m in self.second_stages + self.third_stages:
-        #     for n in m.nodes:
-        #         for k in self.commodities:
-        #             model.addConstr(s_plus[n.node_id, m.stage_id, k.commodity_id] <= 0,
-        #                             name=f"eq1d[{n.node_id},{m.stage_id},{k.commodity_id}]")
-
-        # # Equation 1c
-        # for m in self.second_stages + self.third_stages:
-        #     for n in m.nodes:
-        #         for k in self.commodities:
-        #             model.addConstr(s_minus[n.node_id, m.stage_id, k.commodity_id] <= exit_capacity[n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
-        #                             name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
-        #
-        # # Equation 1d
-        # for m in self.second_stages + self.third_stages:
-        #     for n in m.nodes:
-        #         for k in self.commodities:
-        #             model.addConstr(s_plus[n.node_id, m.stage_id, k.commodity_id] <= entry_capacity[n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for t in self.traders for m_tilde in m.all_parents),
-        #                             name=f"eq1d[{n.node_id},{m.stage_id},{k.commodity_id}]")
-        #
-        # # Equation 1e
-        # for n in self.stages[0].nodes:
-        #     for k in self.commodities:
-        #         lhs = s_minus[n.node_id, 1, k.commodity_id]
-        #         rhs = exit_capacity[n.node_id, m.stage_id, k.commodity_id]
-        #         model.addConstr(lhs <= rhs, name=f"eq1e[{n.node_id},{k.commodity_id}]")
-        #
-        # # Equation 1f
-        # for n in self.stages[0].nodes:
-        #     for k in self.commodities:
-        #         lhs = s_plus[n.node_id, 1, k.commodity_id]
-        #         rhs = entry_capacity[n.node_id, m.stage_id, k.commodity_id]
-        #         model.addConstr(lhs <= rhs, name=f"eq1f[{n.node_id},{k.commodity_id}]")
-
-        # # Equation 1h
-        # k1 = [k for k in self.commodities if k.name == "hydrogen"][0]
-        # k2 = [k for k in self.commodities if k.name == "gas"][0]
-        # for m in self.third_stages:
-        #     for a in self.arcs:
-        #         lhs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k1.commodity_id] for t in self.traders)
-        #         rhs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k2.commodity_id] for t in self.traders) * self.gamma + M * pure_hydrogen_arc[m.stage_id, a[0], a[1]]
-        #         model.addConstr(lhs <= rhs, name=f"eq1j[{m.stage_id},{a}]")
-        #
-        # # NEW CONSTRAINT
-        # k1 = [k for k in self.commodities if k.name == "hydrogen"][0]
-        # k2 = [k for k in self.commodities if k.name == "gas"][0]
-        # for m in self.third_stages:
-        #     for a in self.arcs:
-        #         lhs = gp.quicksum(f[t.trader_id, a[0], a[1], m.stage_id, k2.commodity_id] for t in self.traders)
-        #         rhs = (1 - pure_hydrogen_arc[m.stage_id, a[0], a[1]]) * M
-        #         model.addConstr(lhs <= rhs, name=f"eq1new1_temp[{m.stage_id},{a}]")
-        #
-        # # Equation 1i
-        # d1 = "pure_hydrogen"
-        # d2 = "gas_or_mix"
-        # for m in self.third_stages:
-        #     for n in m.nodes:
-        #         lhs = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k1.commodity_id, d2] for t in self.traders)
-        #         rhs = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k2.commodity_id, d2] for t in self.traders) * self.gamma
-        #         model.addConstr(lhs <= rhs, name=f"1i[{m.stage_id},{n.node_id}]")
-
-        # Equation 1n
-        # k1 = [k for k in self.commodities if k.name == "hydrogen"][0]
-        # k2 = [k for k in self.commodities if k.name == "gas"][0]
-        # for m in self.third_stages:
-        #     for n in m.nodes:
-        #         # Hydrogen
-        #         rhs_numerator = gp.quicksum(f[t.trader_id, a2[0], a2[1], m.stage_id, k1.commodity_id] for a2 in self.incoming_arcs[n.node_id] for t in
-        #             self.traders)
-        #         rhs_numerator += gp.quicksum(Q[t.trader_id, n.node_id, m.stage_id, k1.commodity_id] for t in self.traders)
-        #         rhs_numerator += gp.quicksum(W[t.trader_id, n.node_id, m.stage_id, k1.commodity_id] for t in self.traders)
-        #
-        #         # Gas
-        #         rhs_denominator = gp.quicksum(f[t.trader_id, a2[0], a2[1], m.stage_id, k2.commodity_id] for a2 in self.incoming_arcs[n.node_id] for t in
-        #             self.traders)
-        #         rhs_denominator += gp.quicksum(Q[t.trader_id, n.node_id, m.stage_id, k2.commodity_id] for t in self.traders)
-        #         rhs_denominator += gp.quicksum(W[t.trader_id, n.node_id, m.stage_id, k2.commodity_id] for t in self.traders)
-        #
-        #         for a1 in self.outgoing_arcs[n.node_id]:
-        #             # Hydrogen
-        #             lhs_numerator = gp.quicksum(f[t.trader_id, a1[0], a1[1], m.stage_id, k1.commodity_id] for t in self.traders)
-        #
-        #             # Gas
-        #             lhs_denominator = gp.quicksum(f[t.trader_id, a1[0], a1[1], m.stage_id, k2.commodity_id] for t in self.traders)
-
-        # model.addConstr(lhs_numerator * rhs_denominator == lhs_denominator * rhs_numerator, name=f"eq1n[{n.node_id},{m.stage_id},{a1}]")
-
-        # # # Equation NEW
-        # for m in self.stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             for k in self.commodities:
-        #                 lhs = y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-        #                 rhs = gp.quicksum(x_plus[n.node_id, p.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, p.stage_id, t.trader_id, k.commodity_id] for p in m.all_parents) # + x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-        #                 model.addConstr(lhs <= rhs, name=f"eqNEW1[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-        #
-        # # Equation NEW
-        # for m in self.stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             for k in self.commodities:
-        #                 lhs = y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-        #                 rhs = gp.quicksum(x_minus[n.node_id, p.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, p.stage_id, t.trader_id, k.commodity_id] for p in m.all_parents) # + x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-        #                 model.addConstr(lhs <= rhs, name=f"eqNEW2[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-
-        # # Equation 1f
-        # for m in self.third_stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             for k in self.commodities:
-        #                 model.addConstr(Q[t.trader_id, n.node_id, m.stage_id, k.commodity_id] >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] - gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]),
-        #                                 name=f"1f[{m.stage_id},{n.node_id},{t.trader_id},{k.commodity_id}]")
-        #
-        # # Equation 1g
-        # for m in self.third_stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             for k in self.commodities:
-        #                 model.addConstr(W[t.trader_id, n.node_id, m.stage_id, k.commodity_id] >= w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] - w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
-        #                                 name=f"1m[{m.stage_id},{n.node_id},{t.trader_id},{k.commodity_id}]")
+        pd.Series(solution).to_csv(output_file, sep=";")

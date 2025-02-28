@@ -4,7 +4,7 @@ import pickle
 
 def run_optimizer(input_file, output_file):
     # Read the data from the Excel file
-    nodes_df = pd.read_excel(input_file, sheet_name="Nodes", skiprows=1)
+    nodes_df = pd.read_excel(input_file, sheet_name="Nodes", skiprows=1, skipfooter=3)
     arcs_df = pd.read_excel(input_file, sheet_name="Arcs")
     probability2_df = pd.read_excel(input_file, sheet_name="Demand Stage 2", skiprows=0, nrows=1)
     probability3_df = pd.read_excel(input_file, sheet_name="Demand Stage 3", skiprows=0, nrows=1)
@@ -84,7 +84,7 @@ def run_optimizer(input_file, output_file):
     def get_node_demands(sheet_name, skiprows, nr_stage_nodes):
         node_demands = {}
         for stage_node in range(nr_stage_nodes):
-            for d in ["gas_or_mix", "pure_hydrogen"]:
+            for idx_d, d in enumerate(["gas_or_mix", "pure_hydrogen"]):
                 if d == "gas_or_mix":
                     cols = [1 + i + nr_markets * stage_node * 2 for i in range(nr_markets)]
                 else:
@@ -99,7 +99,7 @@ def run_optimizer(input_file, output_file):
                             demand = demand_df.at[hour, node]
                         else:
                             demand = 0
-                        node_demands[(stage_node, hour, node, d)] = demand
+                        node_demands[(stage_node, hour, node, idx_d + 1)] = demand
         return node_demands
 
     node_demands1 = get_node_demands("Demand Stage 1", 3, 1)
@@ -130,12 +130,8 @@ def run_optimizer(input_file, output_file):
         t.nodes = shipper_df[t.name].values
         traders.append(t)
     gas = Commodity(1, "gas")
-    # hydrogen = Commodity(2, "hydrogen")
-    # commodities = [gas, hydrogen]
-    # d_dict = {gas: ["gas_or_mix"], hydrogen: ["gas_or_mix", "pure_hydrogen"]}
-    # d_list = set([item for d in d_dict.values() for item in d])
     commodities = [gas]
-    d_dict = {gas: ["gas_or_mix"]}
+    d_dict = {gas: [1]}
     d_list = set([item for d in d_dict.values() for item in d])
 
     stage_arcs = []
@@ -156,10 +152,6 @@ def run_optimizer(input_file, output_file):
     stages = []
     for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
         for hour_id in range(1, nr_hours + 1):
-            # if stage_id == 1:
-            #     id = 1
-            # else:
-            #     id = 1 + (stage_id - 2) * nr_hours + hour_id
             id = (stage_id - 1) * nr_hours + hour_id
             stage_nodes = []
             for node in digraph.nodes():
@@ -198,11 +190,11 @@ def run_optimizer(input_file, output_file):
                 for t in traders:
                     if stage_id <= nr_stage2_nodes + 1:
                         if name in gas_sales_df.columns:
-                            sales_prices[(t, "gas_or_mix")] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] # None
+                            sales_prices[(t, 1)] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] # None
                         else:
-                            sales_prices[(t, "gas_or_mix")] = 0
+                            sales_prices[(t, 1)] = 0
                         continue
-                    elif (name == "EMDEN" or name == "DORNUM" or name == "Germany") and (hour_id == 1 or hour_id == 3):
+                    elif (name.capitalize() == "Emden" or name.capitalize() == "Dornum") and (hour_id == 1 or hour_id == 3):
                         if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                             extra = 3
                         elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
@@ -211,7 +203,7 @@ def run_optimizer(input_file, output_file):
                             extra = -3
                         elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                             extra = -3
-                    elif (name == "ZEEBRUGGE" or name == "Zeebrugge") and (hour_id == 1 or hour_id == 3):
+                    elif name.capitalize() == "Zeebrugge" and (hour_id == 1 or hour_id == 3):
                         if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                             extra = 2
                         elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
@@ -224,9 +216,9 @@ def run_optimizer(input_file, output_file):
                         extra = 0
 
                     if name in gas_sales_df.columns:
-                        sales_prices[(t, "gas_or_mix")] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] + extra
+                        sales_prices[(t, 1)] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] + extra
                     else:
-                        sales_prices[(t, "gas_or_mix")] = 0
+                        sales_prices[(t, 1)] = 0
 
                     if name in hydrogen_sales_df.columns:
                         sales_prices[(t, "pure_hydrogen")] = hydrogen_sales_df[hydrogen_sales_df["Hour"] == hour_id][node].values[0] + extra
@@ -280,7 +272,7 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model = problem.build_model(first_stage_constraint=False)
+    model, vars = problem.build_model(first_stage_constraint=False)
 
     # Write gurobi output to file
     model.setParam('OutputFlag', 1)
@@ -290,28 +282,10 @@ def run_optimizer(input_file, output_file):
     model.setParam('TimeLimit', 36000)
 
     model.optimize()
-    problem.save_solution(model, f"{output_file}.json")
-
-# total_sales = sum(m.probability * model._sales[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total sales", total_sales)
-#
-# total_storage = sum(m.probability * model._storage_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total storage costs", total_storage)
-#
-# total_production = sum(m.probability * model._production_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total production costs", total_production)
-#
-# total_flow_costs = sum(m.probability * model._flow_costs[m, n, t, k].getValue() for m in problem.third_stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total flow costs", total_flow_costs)
-#
-# total_entry_costs = sum(m.probability * model._entry_costs[m, n, t, k].getValue() for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total entry costs", total_entry_costs)
-#
-# total_exit_costs = sum(m.probability * model._exit_costs[m, n, t, k].getValue() for m in problem.stages for n in m.nodes for t in problem.traders for k in problem.commodities)
-# print("Total exit costs", total_exit_costs)
+    problem.save_solution(vars, f"{output_file}.csv")
 
 input_file = "Data/OurData2.xlsx"
-output_file = "Results/result_G"
+output_file = "Results/result_v2_A"
 column_fuels = ["Gas", "Hydrogen"]
 
 run_optimizer(input_file, output_file)
