@@ -272,7 +272,7 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(first_stage_constraint=False)
+    model, vars = problem.build_model(first_stage_constraint=True)
 
     # Write gurobi output to file
     model.setParam('OutputFlag', 1)
@@ -285,7 +285,7 @@ def run_optimizer(input_file, output_file):
     problem.save_solution(vars, f"{output_file}")
 
 input_file = "Data/OurData2.xlsx"
-output_file = "Results/result_v2_A"
+output_file = "Results/result_v2_A_conservative"
 column_fuels = ["Gas", "Hydrogen"]
 
 run_optimizer(input_file, output_file)

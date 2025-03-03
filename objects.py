@@ -127,6 +127,8 @@ class Problem:
     def build_model(self, first_stage_constraint = False):
         model = gp.Model("Stochastic Secondary Energy Market")
 
+        epsilon = 10**-3
+
         # model.setParam(GRB.Param.MIPFocus, 1)  # Prioritize feasible solutions quickly
         # model.setParam(GRB.Param.Heuristics, 0.9)  # Set to a higher value for more heuristic effort
         # model.setParam("ImproveStartGap", 0.05)  # Set to 5% gap for example
@@ -175,8 +177,8 @@ class Problem:
             for k in self.commodities:
                 for n in m.nodes:
                     for t in self.traders:
-                        supplier_entry_costs = (x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.entry_costs[(t, k)]
-                        supplier_exit_costs = (x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id]) * n.exit_costs[(t, k)]
+                        supplier_entry_costs = x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.entry_costs[(t, k)] - y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * (n.entry_costs[(t, k)] - epsilon)
+                        supplier_exit_costs = x_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * n.exit_costs[(t, k)] - y_minus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] * (n.exit_costs[(t, k)] - epsilon)
 
                         model._entry_costs[m, n, t, k] = supplier_entry_costs
                         model._exit_costs[m, n, t, k] = supplier_exit_costs
