@@ -203,15 +203,21 @@ class Problem:
             stages = self.stages
         else:
             stages = self.third_stages
-        for m in stages:
+        for m in self.stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
                         if n.name not in t.nodes or k.name == "hydrogen":
-                            model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-                            for d in self.d_list:
-                                if n.name not in self.markets:
-                                    model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
+                            if m in stages:
+                                model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+                            # Traders cannot book entry capacity at markets they're not active at!
+                            model.addConstr(x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= 0, name=f"x_plus_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+                            if m in stages:
+                                for d in self.d_list:
+                                    if n.name not in self.markets:
+                                        model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
 
         # TSO constraints
         # Equation 1b
