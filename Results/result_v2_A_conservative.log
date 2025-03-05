@@ -108,3 +108,122 @@ Extra simplex iterations after uncrush: 63449
 
 Solved in 87187 iterations and 80.74 seconds (62.38 work units)
 Optimal objective  4.240718486e+04
+
+Gurobi 11.0.3 (mac64[x86]) logging started Wed Mar  5 08:38:22 2025
+
+Set parameter LogFile to value "Results/result_v2_A_conservative.log"
+Set parameter TimeLimit to value 36000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 365820 rows, 407064 columns and 1422672 nonzeros
+Model fingerprint: 0x0bf98f4d
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e-02, 3e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 294789 rows and 272172 columns
+Presolve time: 1.22s
+Presolved: 71031 rows, 134892 columns, 399196 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Ordering time: 0.54s
+
+Barrier statistics:
+ AA' NZ     : 1.536e+05
+ Factor NZ  : 3.929e+06 (roughly 70 MB of memory)
+ Factor Ops : 3.333e+09 (less than 1 second per iteration)
+ Threads    : 3
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0  -1.50018787e+06  3.98602200e+07  8.58e+03 9.76e+00  1.67e+04     2s
+   1  -4.73510610e+06  3.31720686e+07  2.50e+03 5.65e+00  4.58e+03     3s
+   2  -4.83797929e+06  1.60195568e+07  3.63e+02 2.13e-01  6.20e+02     3s
+   3  -1.48585880e+06  3.58321584e+06  5.18e+01 1.13e-02  9.90e+01     3s
+   4  -2.43817799e+05  7.94459739e+05  7.35e+00 4.05e-04  1.61e+01     3s
+   5   2.41983929e+02  2.14733292e+05  5.76e-01 7.70e-06  2.60e+00     3s
+   6   3.28939689e+04  6.10521612e+04  3.05e-02 1.35e-13  3.13e-01     4s
+   7   3.91392014e+04  4.76071803e+04  7.38e-03 5.39e-14  9.30e-02     4s
+   8   4.13905501e+04  4.34143349e+04  1.53e-03 4.69e-14  2.21e-02     4s
+   9   4.21232044e+04  4.28432413e+04  2.71e-04 5.16e-14  7.82e-03     4s
+  10   4.22877418e+04  4.26257296e+04  9.23e-05 5.56e-14  3.66e-03     5s
+  11   4.23699487e+04  4.24884298e+04  2.13e-05 4.83e-14  1.28e-03     5s
+  12   4.23973510e+04  4.24246732e+04  3.94e-06 1.41e-13  2.96e-04     5s
+  13   4.24037291e+04  4.24131123e+04  1.26e-06 1.10e-13  1.02e-04     5s
+  14   4.24059339e+04  4.24099660e+04  4.24e-07 1.33e-13  4.36e-05     5s
+  15   4.24063052e+04  4.24084391e+04  2.94e-07 1.78e-13  2.32e-05     6s
+  16   4.24067592e+04  4.24077353e+04  1.42e-07 1.64e-13  1.06e-05     6s
+  17   4.24069387e+04  4.24074141e+04  7.75e-08 1.88e-13  5.18e-06     6s
+  18   4.24070638e+04  4.24073345e+04  3.70e-08 1.76e-13  2.95e-06     6s
+  19   4.24071359e+04  4.24072186e+04  1.43e-08 1.82e-13  9.03e-07     6s
+  20   4.24071795e+04  4.24071930e+04  1.34e-09 1.88e-13  1.47e-07     7s
+  21   4.24071846e+04  4.24071857e+04  7.83e-08 2.64e-13  1.19e-08     7s
+  22   4.24071848e+04  4.24071849e+04  7.89e-08 4.55e-13  8.26e-10     7s
+
+Barrier solved model in 22 iterations and 7.13 seconds (4.68 work units)
+Optimal objective 4.24071848e+04
+
+Crossover log...
+
+   12000 DPushes remaining with DInf 0.0000000e+00                 7s
+       0 DPushes remaining with DInf 0.0000000e+00                 7s
+
+    7295 PPushes remaining with PInf 0.0000000e+00                 7s
+       0 PPushes remaining with PInf 0.0000000e+00                 7s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 4.3156250e-02      7s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   19019    4.2407185e+04   0.000000e+00   4.315625e-02      7s
+
+Solved with barrier
+Extra simplex iterations after uncrush: 2831
+   22117    4.2407185e+04   0.000000e+00   0.000000e+00      8s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+     532 DPushes remaining with DInf 0.0000000e+00                 8s
+       0 DPushes remaining with DInf 0.0000000e+00                 8s
+
+    1270 PPushes remaining with PInf 0.0000000e+00                 8s
+       0 PPushes remaining with PInf 0.0000000e+00                 8s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 3.8175019e-13      8s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   29541    4.2407613e+04   0.000000e+00   8.533020e+04     10s
+   35112    4.2407846e+04   0.000000e+00   4.880367e+04     15s
+   39957    4.2407928e+04   0.000000e+00   6.676463e+04     20s
+   44237    4.2407978e+04   0.000000e+00   1.293470e+04     25s
+   49307    4.2408008e+04   0.000000e+00   9.093380e+03     30s
+   51540    4.2408016e+04   0.000000e+00   7.868252e+03     36s
+   52178    4.2408017e+04   0.000000e+00   3.864907e+03     40s
+   53135    4.2408018e+04   0.000000e+00   2.473997e+04     45s
+   54411    4.2408022e+04   0.000000e+00   1.921653e+04     51s
+   56644    4.2408030e+04   0.000000e+00   5.393633e+04     55s
+   59196    4.2408037e+04   0.000000e+00   7.253738e+03     61s
+   61429    4.2408044e+04   0.000000e+00   3.019804e+04     65s
+   63981    4.2408051e+04   0.000000e+00   1.059055e+04     71s
+   66214    4.2408055e+04   0.000000e+00   1.871154e+03     76s
+   68447    4.2408058e+04   0.000000e+00   2.299794e+03     80s
+   70680    4.2408061e+04   0.000000e+00   2.678361e+03     85s
+   73232    4.2408063e+04   0.000000e+00   4.546973e+03     90s
+   75784    4.2408065e+04   0.000000e+00   1.680227e+03     96s
+   78336    4.2408066e+04   0.000000e+00   1.206486e+03    100s
+   80888    4.2408067e+04   0.000000e+00   3.051733e+02    105s
+   82164    4.2408068e+04   0.000000e+00   1.830587e+03    112s
+   82802    4.2408068e+04   0.000000e+00   2.387058e+03    116s
+   85035    4.2408068e+04   0.000000e+00   2.455394e+03    120s
+   88225    4.2408069e+04   0.000000e+00   2.158450e+01    125s
+Extra simplex iterations after uncrush: 66276
+   90198    4.2407185e+04   0.000000e+00   0.000000e+00    129s
+
+Solved in 90198 iterations and 129.26 seconds (76.56 work units)
+Optimal objective  4.240718486e+04

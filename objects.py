@@ -347,12 +347,14 @@ class Problem:
                     rhs = s_plus[n.node_id, m.stage_id, k.commodity_id] + gp.quicksum(y_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] for t in self.traders)
                     model.addConstr(lhs == rhs, name=f"eq1t[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
+        model.update()
+
         vars = {"x_plus": x_plus, "x_minus": x_minus, "y_plus": y_plus, "y_minus": y_minus, "s_plus": s_plus, "s_minus": s_minus,
                 "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus}
 
         return model, vars
 
-    def save_solution(self, vars, output_file: str):
+    def save_solution(self, vars, constraints, output_file: str):
         for name, var in vars.items():
             solution = {}
             for keys, value in var.items():
@@ -361,3 +363,18 @@ class Problem:
             df = pd.Series(solution).to_frame()
 
             df.to_csv(f"{output_file}_{name}.csv", sep=";")
+
+        shadow_prices = {}
+        slacks = {}
+        for constr in constraints:
+            name = constr.ConstrName
+            if name.startswith("eq1c"):
+                key = tuple(map(int, name.split("[")[1].split("]")[0].split(",")))
+                shadow_prices[key] = constr.Pi
+                slacks[key] = constr.Slack
+
+        df = pd.Series(index = shadow_prices.keys(), data = shadow_prices.values()).to_frame()
+        df.to_csv(f"{output_file}_shadow_prices.csv", sep=";")
+
+        df = pd.Series(index = slacks.keys(), data = slacks.values()).to_frame()
+        df.to_csv(f"{output_file}_slacks.csv", sep=";")

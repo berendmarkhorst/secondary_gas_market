@@ -194,23 +194,23 @@ def run_optimizer(input_file, output_file):
                         else:
                             sales_prices[(t, 1)] = 0
                         continue
-                    elif (name.capitalize() == "Emden" or name.capitalize() == "Dornum") and (hour_id == 1 or hour_id == 3):
-                        if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
+                    elif (name.capitalize() == "Emden" or name.capitalize() == "Dornum") and (hour_id <= 4 or 6 <= hour_id <= 7):
+                        if (stage_id - nr_stage2_nodes - 2) % nr_hours == 0:
                             extra = 3
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 1:
                             extra = 3
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 2:
                             extra = -3
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 3:
                             extra = -3
-                    elif name.capitalize() == "Zeebrugge" and (hour_id == 1 or hour_id == 3):
-                        if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
+                    elif name.capitalize() == "Zeebrugge" and (hour_id <= 4 or 6 <= hour_id <= 7):
+                        if (stage_id - nr_stage2_nodes - 2) % nr_hours == 0:
                             extra = 2
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 1:
                             extra = -2
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 2:
                             extra = 2
-                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
+                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 3:
                             extra = -2
                     else:
                         extra = 0
@@ -272,7 +272,8 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(first_stage_constraint=True)
+    model, vars = problem.build_model(first_stage_constraint=False)
+    constraints = model.getConstrs()
 
     # Write gurobi output to file
     model.setParam('OutputFlag', 1)
@@ -282,10 +283,10 @@ def run_optimizer(input_file, output_file):
     model.setParam('TimeLimit', 36000)
 
     model.optimize()
-    problem.save_solution(vars, f"{output_file}")
+    problem.save_solution(vars, constraints, f"{output_file}")
 
-input_file = "Data/OurData2.xlsx"
-output_file = "Results/result_v2_A_conservative"
+input_file = "Data/OurData3.xlsx"
+output_file = "Results/result_v2_A_8"
 column_fuels = ["Gas", "Hydrogen"]
 
 run_optimizer(input_file, output_file)
