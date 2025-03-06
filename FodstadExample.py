@@ -2,7 +2,7 @@ from objects import *
 import pickle
 
 
-def run_optimizer(input_file, output_file):
+def run_optimizer(input_file, output_file, c1, c2):
     # Read the data from the Excel file
     nodes_df = pd.read_excel(input_file, sheet_name="Nodes", skiprows=1, skipfooter=3)
     arcs_df = pd.read_excel(input_file, sheet_name="Arcs")
@@ -272,7 +272,7 @@ def run_optimizer(input_file, output_file):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(first_stage_constraint=False)
+    model, vars = problem.build_model(c1=c1, c2=c2)
     constraints = model.getConstrs()
 
     # Write gurobi output to file
@@ -286,7 +286,8 @@ def run_optimizer(input_file, output_file):
     problem.save_solution(vars, constraints, f"{output_file}")
 
 input_file = "Data/OurData3.xlsx"
-output_file = "Results/result_v2_A_8"
+output_file = "Results/result_v2_A_8_conservative"
 column_fuels = ["Gas", "Hydrogen"]
+c1, c2 = 1, 1
 
-run_optimizer(input_file, output_file)
+run_optimizer(input_file, output_file, c1, c2)

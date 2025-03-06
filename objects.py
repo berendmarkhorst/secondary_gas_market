@@ -106,6 +106,7 @@ class Problem:
         self.stage_ids = [stage.stage_id for stage in self.stages]  # Starts at 1!
         self.stage_ids_star = self.stage_ids[1:]  # Without 1!
         self.first_stage_id = [stage.stage_id for stage in self.stages if stage.name == "long term"][0]
+        self.first_stages = [stage for stage in self.stages if stage.name == "long term"]
         self.second_stages = [stage for stage in self.stages if stage.name == "day ahead"]
         self.second_stage_ids = [stage.stage_id for stage in self.second_stages]
         self.third_stages = [stage for stage in self.stages if stage.name == "intra day"]
@@ -124,7 +125,7 @@ class Problem:
             for d in d_all:
                 self.k_dict[d].append(k)
 
-    def build_model(self, first_stage_constraint = False):
+    def build_model(self, c1: float = 1, c2: float = 1):
         model = gp.Model("Stochastic Secondary Energy Market")
 
         epsilon = 10**-3
@@ -146,20 +147,15 @@ class Problem:
         y_minus = model.addVars(self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="y_minus", lb=0.0)
         s_plus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_plus", lb=0.0)
         s_minus = model.addVars(self.node_ids, self.stage_ids, self.commodity_ids, name="s_minus", lb=0.0)
-        if first_stage_constraint:
-            f = model.addVars(self.trader_ids, self.arc_ids, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
-            q_sales = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
-            q_production = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="q_production", lb=0.0)
-            v = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="v", lb=0.0)
-            w_plus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
-            w_minus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
-        else:
-            f = model.addVars(self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)
-            q_sales = model.addVars(self.trader_ids, self.node_ids, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
-            q_production = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
-            v = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
-            w_plus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
-            w_minus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
+        gamma = model.addVars(["long term", "day ahead"], ["Plus", "Minus"], self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="gamma", lb=0.0) # Stage, plus/minus
+        delta = model.addVars(["long term", "day ahead"], ["Entry", "Exit"], ["Plus", "Minus"], self.node_ids, self.third_stage_ids, self.trader_ids, self.commodity_ids, name="delta", lb=0.0) # Stage, plus/minus
+        labda = model.addVars(["Entry", 'Exit'], self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="labda", lb=0.0) # Entry/exit
+        f = model.addVars(self.trader_ids, self.arc_ids, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
+        q_sales = model.addVars(self.trader_ids, self.node_ids, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
+        q_production = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
+        v = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
+        w_plus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
+        w_minus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
 
         # Objective function
         objective = 0
@@ -185,7 +181,7 @@ class Problem:
 
                         objective -= self.stages[m.stage_id-1].probability * (supplier_entry_costs + supplier_exit_costs)
 
-                        if m.name == "intra day" or first_stage_constraint:
+                        if m.name == "intra day":
                             production_costs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.production_costs[(t,k)]
                             storage_costs = w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)]
                             flow_costs = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
@@ -201,136 +197,152 @@ class Problem:
         model.setObjective(objective, gp.GRB.MAXIMIZE)
 
         # Bounds of production and sales decision variables
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
         for m in self.stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
                         if n.name not in t.nodes or k.name == "hydrogen":
-                            if m in stages:
+                            if m in self.third_stages:
                                 model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
                             # Traders cannot book entry capacity at markets they're not active at!
                             model.addConstr(x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= 0, name=f"x_plus_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
-                            if m in stages:
+                            if m in self.third_stages:
                                 for d in self.d_list:
                                     if n.name not in self.markets:
                                         model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
 
+        # Dummy constraints
+        # Define labda constraint
+        for m in self.stages:
+            for n in m.nodes:
+                for t in self.traders:
+                    for k in self.commodities:
+                        model.addConstr(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] ==
+                                        gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_minus[
+                                                    n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m] if
+                                                    m_tilde.hour == m.hour), name=f"dummy_exit[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+                        model.addConstr(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] ==
+                                        gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[
+                                                    n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m] if
+                                                    m_tilde.hour == m.hour), name=f"dummy_entry[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+        # Define gamma constraint
+        for i in ["long term", "day ahead"]:
+            for m in self.third_stages:
+                for a in self.arc_ids:
+                    for t in self.traders:
+                        rhs = f[t.trader_id, a, m.stage_id, k.commodity_id]
+
+                        # First stage equivalent
+                        m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
+                        lhs = f[t.trader_id, a, m_tilde.stage_id, k.commodity_id]
+
+                        model.addConstr(gamma[i, "Plus", t.trader_id, a, m.stage_id, k.commodity_id] == lhs - rhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
+                        model.addConstr(gamma[i, "Minus", t.trader_id, a, m.stage_id, k.commodity_id] == rhs - lhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
+
+        # Define delta constraint
+        for i in ["long term", "day ahead"]:
+            for e in ["Entry", "Exit"]:
+                for m in self.third_stages:
+                    for n in m.nodes:
+                        for t in self.traders:
+                            rhs = labda[e, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
+
+                            # First stage equivalent
+                            m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
+                            lhs = labda[e, n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id]
+
+                            model.addConstr(delta[i, e, "Plus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] == lhs - rhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                            model.addConstr(delta[i, e, "Minus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] == rhs - lhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+        # Put a limit on the change of the decision variables from first to third and second to third stage
+        for i, c in zip(["long term", "day ahead"], [c1, c2]):
+            delta_coeff = gp.quicksum(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
+                                        for e in ["Entry", "Exit"]
+                                        for s in ["Plus", "Minus"]
+                                        for m in self.third_stages
+                                        for n in m.nodes
+                                        for t in self.traders
+                                        for k in self.commodities)
+            gamma_coeff = gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id]
+                                        for s in ["Plus", "Minus"]
+                                        for a in self.arc_ids
+                                        for m in self.third_stages
+                                        for k in self.commodities)
+            rhs_flow = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for a in self.arc_ids for m in self.first_stages for k in self.commodities)
+            rhs_plus = gp.quicksum(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
+            rhs_minus = gp.quicksum(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
+            rhs = rhs_flow + rhs_plus + rhs_minus
+            model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
+
         # TSO constraints
         # Equation 1b
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
-        for m in stages:
+        for m in self.third_stages:
             for a in self.arc_ids:
                 model.addConstr(gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * m.get_arc(a).arc_capacity, # self.stages[m.stage_id-1]
                                 name=f"eq1b[{m.stage_id},{a}]")
 
-        # Equation 1c
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.second_stages + self.third_stages
-        for m in stages:
-            for n in m.nodes:
-                for d in self.d_list:
-                    for t in self.traders:
-                        model.addConstr(gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for k in self.k_dict[d]) >= n.node_demands[(d, t)],
-                                        name=f"eq1c[{n.node_id},{m.stage_id},{t.trader_id}]")
-
         # Supplier constraints
-        # Equation 1d
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
-        for m in stages:
+        # Equation 1c
+        for m in self.third_stages:
             for n in m.nodes:
                 for k in self.commodities:
                     model.addConstr(gp.quicksum(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] for t in self.traders) <= n.production_capacity[k],
-                                    name=f"eq1d[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                                    name=f"eq1c[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
-        # Equation 1e
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
-        for m in stages:
+        # Equation 1d
+        for m in self.third_stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
                         lhs = q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum((1 - self.loss_rate) * f[t.trader_id, a, m.stage_id, k.commodity_id] for a in self.incoming_arcs[n.node_id])
                         rhs = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) + w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for a in self.outgoing_arcs[n.node_id])
-                        model.addConstr(lhs == rhs, name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                        model.addConstr(lhs == rhs, name=f"eq1d[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
-        # Equation 1f
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.second_stages + self.third_stages
-        for m in stages:
+        # Equation 1e
+        for m in self.second_stages + self.third_stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
-                        model.addConstr(gp.quicksum(x_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_minus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.hour == m.hour) >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]),
+                        model.addConstr(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]),
+                                        name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
+
+        # Equation 1f
+        for m in self.third_stages:
+            for n in m.nodes:
+                for t in self.traders:
+                    for k in self.commodities:
+                        model.addConstr(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
                                         name=f"eq1f[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
 
         # Equation 1g
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
-        for m in stages:
-            for n in m.nodes:
-                for t in self.traders:
-                    for k in self.commodities:
-                        model.addConstr(gp.quicksum(x_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] - y_plus[n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.hour == m.hour) >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
-                                        name=f"eq1g[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
-
-        # Equation 1h1
-        if first_stage_constraint:
-            for m in self.stages:
-                if m.name == "long term":
-                    for n in m.nodes:
-                        for t in self.traders:
-                            for k in self.commodities:
-                                model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "long term"), name=f"eq1h3[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-
-        # Equation 1h2
-        if first_stage_constraint:
-            for m in self.second_stages:
-                for n in m.nodes:
-                    for t in self.traders:
-                        for k in self.commodities:
-                            model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "day ahead"), name=f"eq1h2[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-
-        # Equation 1h3
         for m in self.third_stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
                         model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "intra day"),
-                                        name=f"eq1h3[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                                        name=f"eq1g[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
-        # Equation 1i
-        if first_stage_constraint:
-            stages = self.stages
-        else:
-            stages = self.third_stages
-        for m in stages:
+        # Equation 1h
+        for m in self.third_stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
                         model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= n.storage_capacity[(t, k)],
-                                        name=f"eq1i[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                                        name=f"eq1h[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
-        # Market constraints
+        # Capacity market constraints
+        # Equation 1i
+        for m in self.second_stages + self.third_stages:
+            for n in m.nodes:
+                for d in self.d_list:
+                    for t in self.traders:
+                        model.addConstr(gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for k in self.k_dict[d]) >= n.node_demands[(d, t)],
+                                        name=f"eq1i[{n.node_id},{m.stage_id},{t.trader_id}]")
+
         # Equation 1j
         for m in self.stages:
             for n in m.nodes:
@@ -368,7 +380,7 @@ class Problem:
         slacks = {}
         for constr in constraints:
             name = constr.ConstrName
-            if name.startswith("eq1c"):
+            if name.startswith("eq1i"):
                 key = tuple(map(int, name.split("[")[1].split("]")[0].split(",")))
                 shadow_prices[key] = constr.Pi
                 slacks[key] = constr.Slack
@@ -378,3 +390,30 @@ class Problem:
 
         df = pd.Series(index = slacks.keys(), data = slacks.values()).to_frame()
         df.to_csv(f"{output_file}_slacks.csv", sep=";")
+
+# Zooi
+# Equation 1g1
+        # if first_stage_constraint:
+        #     for m in self.stages:
+        #         if m.name == "long term":
+        #             for n in m.nodes:
+        #                 for t in self.traders:
+        #                     for k in self.commodities:
+        #                         model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "long term"), name=f"eq1g1[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+        #
+        # # Equation 1g2
+        # if first_stage_constraint:
+        #     for m in self.second_stages:
+        #         for n in m.nodes:
+        #             for t in self.traders:
+        #                 for k in self.commodities:
+        #                     model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "day ahead"), name=f"eq1g2[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+        # if first_stage_constraint:
+        #     q_sales = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
+        #     q_production = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="q_production", lb=0.0)
+        #     v = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="v", lb=0.0)
+        #     w_plus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
+        #     w_minus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
+        # else:
+        #     f = model.addVars(self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)
