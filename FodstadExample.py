@@ -1,5 +1,6 @@
 from objects import *
 import pickle
+from tqdm import tqdm
 
 
 def run_optimizer(input_file, output_file, c1, c2):
@@ -290,4 +291,52 @@ output_file = "Results/result_v2_B_8"
 column_fuels = ["Gas", "Hydrogen"]
 c1, c2 = None, None
 
-run_optimizer(input_file, output_file, c1, c2)
+# run_optimizer(input_file, output_file, c1, c2)
+
+# Experimentje
+# second_stage_costs = 5
+# for increase_rate in tqdm(np.linspace(1, 1.5, 21)):
+#     experiment_output = f"Results/Experimentje/{output_file.split('/')[1]}_{increase_rate:.2f}"
+#     with open(f"{output_file}.pkl", "rb") as file:
+#         problem = pickle.load(file)
+#
+#     for m in problem.second_stages:
+#         for n in m.nodes:
+#             n.entry_costs = {(t, k): second_stage_costs for t in problem.traders for k in problem.commodities}
+#             n.exit_costs = {(t, k): second_stage_costs for t in problem.traders for k in problem.commodities}
+#
+#     for m in problem.third_stages:
+#         for n in m.nodes:
+#             n.entry_costs = {(t, k): second_stage_costs * increase_rate for t in problem.traders for k in problem.commodities}
+#             n.exit_costs = {(t, k): second_stage_costs * increase_rate for t in problem.traders for k in problem.commodities}
+#
+#     # Store problem object
+#     with open(f"{experiment_output}.pkl", "wb") as file:
+#         pickle.dump(problem, file)
+#
+#     model, vars = problem.build_model(c1=c1, c2=c2)
+#     constraints = model.getConstrs()
+#
+#     model.optimize()
+#     problem.save_solution(vars, constraints, experiment_output)
+
+# Experimentje 2
+for beta in tqdm(np.linspace(0, 1, 21)):
+    experiment_output = f"Results/Experimentje2/{output_file.split('/')[1]}_{beta:.2f}"
+    with open(f"{output_file}.pkl", "rb") as file:
+        problem = pickle.load(file)
+
+    for m in problem.stages:
+        for n in m.nodes:
+            n.allowed_percentage = beta
+
+    # Store problem object
+    with open(f"{experiment_output}.pkl", "wb") as file:
+        pickle.dump(problem, file)
+
+    model, vars = problem.build_model(c1=c1, c2=c2)
+    constraints = model.getConstrs()
+
+    model.optimize()
+    problem.save_solution(vars, constraints, experiment_output)
+
