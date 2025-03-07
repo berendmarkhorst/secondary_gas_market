@@ -286,8 +286,8 @@ def run_optimizer(input_file, output_file, c1, c2):
     problem.save_solution(vars, constraints, f"{output_file}")
 
 input_file = "Data/OurData3.xlsx"
-output_file = "Results/result_v2_A_8_conservative"
+output_file = "Results/result_v2_B_8"
 column_fuels = ["Gas", "Hydrogen"]
-c1, c2 = 1, 1
+c1, c2 = None, None
 
 run_optimizer(input_file, output_file, c1, c2)
