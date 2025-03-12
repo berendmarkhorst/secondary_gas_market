@@ -1,9 +1,12 @@
 from objects import *
 import pickle
-from tqdm import tqdm
+# from tqdm import tqdm
+import argparse
 
 
-def run_optimizer(input_file, output_file, c1, c2):
+def run_optimizer(input_file, output_file, c1, c2, nodefiles):
+    column_fuels = ["Gas", "Hydrogen"]
+
     # Read the data from the Excel file
     nodes_df = pd.read_excel(input_file, sheet_name="Nodes", skiprows=1, skipfooter=3)
     arcs_df = pd.read_excel(input_file, sheet_name="Arcs")
@@ -273,7 +276,7 @@ def run_optimizer(input_file, output_file, c1, c2):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(c1=c1, c2=c2)
+    model, vars = problem.build_model(c1=c1, c2=c2, nodefiles=nodefiles)
     constraints = model.getConstrs()
 
     # Write gurobi output to file
@@ -286,12 +289,21 @@ def run_optimizer(input_file, output_file, c1, c2):
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")
 
-input_file = "Data/OurData3.xlsx"
-output_file = "Results/result_v2_B_8"
-column_fuels = ["Gas", "Hydrogen"]
-c1, c2 = None, None
+# input_file = "Data/OurData3.xlsx"
+# output_file = "Results/result_v2_B_8"
+# c1, c2 = None, None
 
 # run_optimizer(input_file, output_file, c1, c2)
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run experiments.")
+    parser.add_argument("--input_file", type=str, default="Data/OurData3.xlsx", help="The folder with the instance")
+    parser.add_argument("--output_file", type=str, help="The output file.")
+    parser.add_argument("--nodefiles", type=str, default="", help="The output file.")
+    parser.add_argument("--c1", type=float, default=None, help="Long term.")
+    parser.add_argument("--c2", type=float, default=None, help="Day ahead.")
+
+    run_optimizer(**vars(parser.parse_args()))
 
 # Experimentje
 # second_stage_costs = 5
@@ -321,22 +333,22 @@ c1, c2 = None, None
 #     problem.save_solution(vars, constraints, experiment_output)
 
 # Experimentje 2
-for beta in tqdm(np.linspace(0, 1, 21)):
-    experiment_output = f"Results/Experimentje2/{output_file.split('/')[1]}_{beta:.2f}"
-    with open(f"{output_file}.pkl", "rb") as file:
-        problem = pickle.load(file)
-
-    for m in problem.stages:
-        for n in m.nodes:
-            n.allowed_percentage = beta
-
-    # Store problem object
-    with open(f"{experiment_output}.pkl", "wb") as file:
-        pickle.dump(problem, file)
-
-    model, vars = problem.build_model(c1=c1, c2=c2)
-    constraints = model.getConstrs()
-
-    model.optimize()
-    problem.save_solution(vars, constraints, experiment_output)
+# for beta in tqdm(np.linspace(0, 1, 21)):
+#     experiment_output = f"Results/Experimentje2/{output_file.split('/')[1]}_{beta:.2f}"
+#     with open(f"{output_file}.pkl", "rb") as file:
+#         problem = pickle.load(file)
+#
+#     for m in problem.stages:
+#         for n in m.nodes:
+#             n.allowed_percentage = beta
+#
+#     # Store problem object
+#     with open(f"{experiment_output}.pkl", "wb") as file:
+#         pickle.dump(problem, file)
+#
+#     model, vars = problem.build_model(c1=c1, c2=c2)
+#     constraints = model.getConstrs()
+#
+#     model.optimize()
+#     problem.save_solution(vars, constraints, experiment_output)
 

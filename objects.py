@@ -125,8 +125,12 @@ class Problem:
             for d in d_all:
                 self.k_dict[d].append(k)
 
-    def build_model(self, c1: float = 1, c2: float = 1):
+    def build_model(self, c1: float = 1, c2: float = 1, nodefiles: str = ""):
         model = gp.Model("Stochastic Secondary Energy Market")
+
+        if nodefiles != "":
+            model.setParam("NodeFileStart", 0.5)
+            model.setParam("NodeFileDir", nodefiles)
 
         epsilon = 10**-3
 
@@ -242,8 +246,8 @@ class Problem:
                             m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
                             lhs = f[t.trader_id, a, m_tilde.stage_id, k.commodity_id]
 
-                            model.addConstr(gamma[i, "Plus", t.trader_id, a, m.stage_id, k.commodity_id] == lhs - rhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
-                            model.addConstr(gamma[i, "Minus", t.trader_id, a, m.stage_id, k.commodity_id] == rhs - lhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
+                            model.addConstr(gamma[i, "Plus", t.trader_id, a, m.stage_id, k.commodity_id] >= lhs - rhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
+                            model.addConstr(gamma[i, "Minus", t.trader_id, a, m.stage_id, k.commodity_id] >= rhs - lhs, name=f"dummy_gamma_plus[{i},{t.trader_id},{a},{m.stage_id},{k.commodity_id}]")
 
             # Define delta constraint
             for i in ["long term", "day ahead"]:
@@ -257,45 +261,47 @@ class Problem:
                                 m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
                                 lhs = labda[e, n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id]
 
-                                model.addConstr(delta[i, e, "Plus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] == lhs - rhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-                                model.addConstr(delta[i, e, "Minus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] == rhs - lhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                                model.addConstr(delta[i, e, "Plus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= lhs - rhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+                                model.addConstr(delta[i, e, "Minus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= rhs - lhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
             # Put a limit on the change of the decision variables from first to third and second to third stage
             for i, c in zip(["long term", "day ahead"], [c1, c2]):
-                for m in self.third_stages:
-                    # First stage equivalent
-                    m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
+                # for m in self.third_stages:
+                #     # First stage equivalent
+                #     m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
+                #
+                #     # Delta
+                #     for n in m.nodes:
+                #         for t in self.traders:
+                #             for k in self.commodities:
+                #                 for e in ["Entry", "Exit"]:
+                #                     for s in ["Plus", "Minus"]:
+                #                         model.addConstr(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= c * labda[e, n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id], name=f"delta_limit_{i}")
+                #     # Gamma
+                #         for a in self.arc_ids:
+                #             for t in self.traders:
+                #                 for k in self.commodities:
+                #                     for s in ["Plus", "Minus"]:
+                #                         model.addConstr(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id] <= c * f[t.trader_id, a, m_tilde.stage_id, k.commodity_id], name=f"gamma_limit_{i}")
 
-                    # Delta
-                    for n in m.nodes:
-                        for t in self.traders:
-                            for k in self.commodities:
-                                for e in ["Entry", "Exit"]:
-                                    model.addConstr(gp.quicksum(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id] for s in ["Plus", "Minus"]) <= c * labda[e, n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id], name=f"delta_limit_{i}")
-                    # Gamma
-                        for a in self.arc_ids:
-                            for t in self.traders:
-                                for k in self.commodities:
-                                    model.addConstr(gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id] for s in ["Plus", "Minus"]) <= c * f[t.trader_id, a, m_tilde.stage_id, k.commodity_id], name=f"gamma_limit_{i}")
-
-                # delta_coeff = gp.quicksum(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-                #                             for e in ["Entry", "Exit"]
-                #                             for s in ["Plus", "Minus"]
-                #                             for m in self.third_stages
-                #                             for n in m.nodes
-                #                             for t in self.traders
-                #                             for k in self.commodities)
-                # gamma_coeff = gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id]
-                #                             for s in ["Plus", "Minus"]
-                #                             for t in self.traders
-                #                             for a in self.arc_ids
-                #                             for m in self.third_stages
-                #                             for k in self.commodities)
-                # rhs_flow = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for a in self.arc_ids for m in self.first_stages for k in self.commodities)
-                # rhs_plus = gp.quicksum(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
-                # rhs_minus = gp.quicksum(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
-                # rhs = rhs_flow + rhs_plus + rhs_minus
-                # model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
+                delta_coeff = gp.quicksum(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
+                                            for e in ["Entry", "Exit"]
+                                            for s in ["Plus", "Minus"]
+                                            for m in self.third_stages
+                                            for n in m.nodes
+                                            for t in self.traders
+                                            for k in self.commodities)
+                gamma_coeff = gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id]
+                                            for s in ["Plus", "Minus"]
+                                            for t in self.traders
+                                            for a in self.arc_ids
+                                            for m in self.third_stages
+                                            for k in self.commodities)
+                rhs_flow = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for a in self.arc_ids for m in self.first_stages for k in self.commodities)
+                rhs_plus = gp.quicksum(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
+                rhs_minus = gp.quicksum(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
+                rhs = rhs_flow + rhs_plus + rhs_minus
+                model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
 
         # TSO constraints
         # Equation 1b
