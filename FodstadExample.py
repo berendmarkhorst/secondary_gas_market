@@ -93,10 +93,10 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                     cols = [1 + i + nr_markets * stage_node * 2 for i in range(nr_markets)]
                 else:
                     cols = [1 + nr_markets + i + nr_markets * stage_node * 2 for i in range(nr_markets)]
-                demand_df = pd.read_excel(input_file, sheet_name=sheet_name, skiprows=skiprows, usecols=cols)
+                demand_df = pd.read_excel(input_file, sheet_name=sheet_name, skiprows=skiprows, usecols=cols).iloc[:nr_hours]
 
                 # Needed because markets occur multiple times in the same row
-                demand_df.columns = [col.split(".")[0] for col in demand_df.columns]
+                demand_df.columns = [col.split(".")[0] if not col.startswith("ST") else "ST.FERGUS" for col in demand_df.columns]
                 for hour in range(nr_hours):
                     for node in digraph.nodes():
                         if node in demand_df.columns:
