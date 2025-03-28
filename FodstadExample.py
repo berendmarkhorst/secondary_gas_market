@@ -202,22 +202,22 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                             sales_prices[(t, 1)] = 0
                         continue
                     elif (name.capitalize() == "Emden" or name.capitalize() == "Dornum") and (hour_id <= 4 or 6 <= hour_id <= 7):
-                        if (stage_id - nr_stage2_nodes - 2) % nr_hours == 0:
+                        if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                             extra = 3
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 1:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
                             extra = 3
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 2:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
                             extra = -3
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 3:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                             extra = -3
                     elif name.capitalize() == "Zeebrugge" and (hour_id <= 4 or 6 <= hour_id <= 7):
-                        if (stage_id - nr_stage2_nodes - 2) % nr_hours == 0:
+                        if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                             extra = 2
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 1:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
                             extra = -2
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 2:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 2:
                             extra = 2
-                        elif (stage_id - nr_stage2_nodes - 2) % nr_hours == 3:
+                        elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                             extra = -2
                     else:
                         extra = 0
@@ -257,7 +257,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                 stages.append(stage)
             # Third stage!
             else:
-                for s in range(nr_stage3_nodes):
+                for s in range(nr_scenarios_hydrogen):
                     new_id = id + nr_scenarios_hydrogen * nr_hours * s
 
                     if hour_id > 1:
