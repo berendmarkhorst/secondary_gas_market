@@ -19,10 +19,12 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     shipper_df = pd.read_excel(input_file, sheet_name="Traders")
     probabilities_df = pd.read_excel(input_file, sheet_name="Probabilities")
     trader_percentages_df = pd.read_excel(input_file, sheet_name="TraderPercentages")
+    hydrogen_uncertainty = pd.read_excel(input_file, sheet_name="HydrogenUncertainty")
 
     # Parameters
     nr_stage2_nodes = int(parameters_df[parameters_df["Name"] == "Stage 2 nodes"]["Value"].values[0])
     nr_stage3_nodes = int(parameters_df[parameters_df["Name"] == "Stage 3 nodes"]["Value"].values[0])
+    nr_scenarios_hydrogen = int(parameters_df[parameters_df["Name"] == "Number scenarios hydrogen"]["Value"].values[0])
     nr_markets = int(parameters_df[parameters_df["Name"] == "Number markets"]["Value"].values[0])
     nr_hours = int(parameters_df[parameters_df["Name"] == "Number hours"]["Value"].values[0])
     allowed_percentage1 = float(parameters_df[parameters_df["Name"] == "Allowed percentage Stage 1"]["Value"].values[0])
@@ -134,8 +136,9 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
         t.nodes = shipper_df[t.name].values
         traders.append(t)
     gas = Commodity(1, "gas")
-    commodities = [gas]
-    d_dict = {gas: [1]}
+    hydrogen = Commodity(2, "hydrogen")
+    commodities = [gas, hydrogen]
+    d_dict = {gas: [1], hydrogen: [1]}
     d_list = set([item for d in d_dict.values() for item in d])
 
     stage_arcs = []
@@ -242,6 +245,8 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                     parent = None
                 probability = 1 # probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
                 stage = Stage(id, "long term", probability, stage_nodes, stage_arcs, parent, hour_id)
+                stages.append(stage)
+            # Second stage!
             elif 1 < stage_id <= nr_stage2_nodes + 1:
                 if hour_id > 1:
                     parent = stages[-1]
@@ -249,16 +254,33 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                     parent = stages[nr_hours-1]
                 probability = probabilities2[stage_id-2] # * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
                 stage = Stage(id, "day ahead", probability, stage_nodes, stage_arcs, parent, hour_id)
+                stages.append(stage)
+            # Third stage!
             else:
-                if hour_id > 1:
-                    parent = stages[-1]
-                else:
-                    parent_id = parents3[stage_id - nr_stage2_nodes - 2] + (nr_hours - 1)
-                    parent = [stage for stage in stages if stage.stage_id == parent_id][0]
-                probability = probabilities3[stage_id - nr_stage2_nodes - 2] # * probabilities_df[probabilities_df["Hour"] == hour_id]["Weight"].values[0]
-                stage = Stage(id, "intra day", probability, stage_nodes, stage_arcs, parent, hour_id)
+                for s in range(nr_stage3_nodes):
+                    new_id = id + nr_scenarios_hydrogen * nr_hours * s
 
-            stages.append(stage)
+                    if hour_id > 1:
+                        parent_id = new_id - 1
+                    else:
+                        parent_id = parents3[stage_id - nr_stage2_nodes - 2] + (nr_hours - 1)
+                    parent = [stage for stage in stages if stage.stage_id == parent_id][0]
+
+                    probability_hydrogen = hydrogen_uncertainty["Probability"].iloc[s]
+
+                    for node_name in hydrogen_uncertainty.columns[:2]:
+                        adjusted_node_name = node_name.capitalize()
+
+                        for n in stage_nodes:
+                            if n.name.capitalize() == adjusted_node_name:
+                                n.production_hydrogen = hydrogen_uncertainty[node_name].iloc[s]
+                            else:
+                                n.production_hydrogen = 0
+
+                    probability = probabilities3[stage_id - nr_stage2_nodes - 2] * probability_hydrogen
+                    stage = Stage(new_id, "intra day", probability, stage_nodes, stage_arcs, parent, hour_id)
+
+                    stages.append(stage)
 
     markets = list(nodes_df[nodes_df["Type"] == "Market"]["Name"].values)
 
@@ -276,7 +298,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(c1=c1, c2=c2, nodefiles=nodefiles)
+    model, vars = problem.build_model(output_file, c1=c1, c2=c2, nodefiles=nodefiles)
     constraints = model.getConstrs()
 
     # Write gurobi output to file
@@ -284,7 +306,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     model.setParam('LogFile', f"{output_file}.log")
 
     # Set a maximum runtime of 10 hours
-    model.setParam('TimeLimit', 36000)
+    model.setParam('TimeLimit', 3600*3.5)
 
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")

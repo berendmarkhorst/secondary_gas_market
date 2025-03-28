@@ -5,6 +5,7 @@ from typing import List, Dict, Tuple
 import json
 import pandas as pd
 import numpy as np
+import time
 from scipy.sparse import dok_matrix
 
 class Commodity:
@@ -125,8 +126,13 @@ class Problem:
             for d in d_all:
                 self.k_dict[d].append(k)
 
-    def build_model(self, c1: float = 1, c2: float = 1, nodefiles: str = ""):
+    def build_model(self, output_file, c1: float = 1, c2: float = 1, nodefiles: str = ""):
+        start = time.time()
+
         model = gp.Model("Stochastic Secondary Energy Market")
+
+        # Write logs to output_file
+        model.setParam("LogFile", f"{output_file}.log")
 
         if nodefiles != "":
             model.setParam("NodeFileStart", 0.5)
@@ -206,7 +212,7 @@ class Problem:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
-                        if n.name not in t.nodes or k.name == "hydrogen":
+                        if n.name not in t.nodes: # or k.name == "hydrogen":
                             if m in self.third_stages:
                                 model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] <= 0, name=f"production_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
@@ -303,9 +309,24 @@ class Problem:
                 rhs = rhs_flow + rhs_plus + rhs_minus
                 model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
 
+        # Fix the production of hydrogen nodes
+        for t in self.traders:
+            for m in self.third_stages:
+                for n in m.nodes:
+                    for k in self.commodities:
+                        if k.name == "hydrogen":
+                            model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == n.production_hydrogen, name=f"hydrogen_production[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+
+        # Hydrogen:gas ratio cannot exceed 1:4
+        for m in self.stages:
+            for a in self.arc_ids:
+                hydrogen = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities if k.name == "hydrogen")
+                gas = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities if k.name == "gas")
+                model.addConstr(hydrogen <= gas * 4)
+
         # TSO constraints
         # Equation 1b
-        for m in self.third_stages:
+        for m in self.stages:
             for a in self.arc_ids:
                 model.addConstr(gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities) <= m.nodes[0].allowed_percentage * m.get_arc(a).arc_capacity, # self.stages[m.stage_id-1]
                                 name=f"eq1b[{m.stage_id},{a}]")
@@ -315,8 +336,9 @@ class Problem:
         for m in self.third_stages:
             for n in m.nodes:
                 for k in self.commodities:
-                    model.addConstr(gp.quicksum(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] for t in self.traders) <= n.production_capacity[k],
-                                    name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
+                    if k.name == "gas":
+                        model.addConstr(gp.quicksum(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] for t in self.traders) <= n.production_capacity[k],
+                                        name=f"eq1c[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
         # Equation 1d
         for m in self.third_stages:
@@ -333,7 +355,7 @@ class Problem:
                 for t in self.traders:
                     for k in self.commodities:
                         model.addConstr(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]),
-                                        name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
+                                        name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1f
         for m in self.third_stages:
@@ -341,7 +363,7 @@ class Problem:
                 for t in self.traders:
                     for k in self.commodities:
                         model.addConstr(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
-                                        name=f"eq1f[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]") #  or m_tilde.stage_id == 1
+                                        name=f"eq1f[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1g
         for m in self.third_stages:
@@ -389,6 +411,9 @@ class Problem:
         vars = {"x_plus": x_plus, "x_minus": x_minus, "y_plus": y_plus, "y_minus": y_minus, "s_plus": s_plus, "s_minus": s_minus,
                 "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus}
 
+        end_time = time.time()
+        print(f"Model building took {end_time - start} seconds.")
+
         return model, vars
 
     def save_solution(self, vars, constraints, output_file: str):
@@ -429,31 +454,3 @@ class Problem:
 
         df = pd.Series(index = pipes.keys(), data = pipes.values()).to_frame()
         df.to_csv(f"{output_file}_shadow_prices_pipes.csv", sep=";")
-
-
-# Zooi
-# Equation 1g1
-        # if first_stage_constraint:
-        #     for m in self.stages:
-        #         if m.name == "long term":
-        #             for n in m.nodes:
-        #                 for t in self.traders:
-        #                     for k in self.commodities:
-        #                         model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "long term"), name=f"eq1g1[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-        #
-        # # Equation 1g2
-        # if first_stage_constraint:
-        #     for m in self.second_stages:
-        #         for n in m.nodes:
-        #             for t in self.traders:
-        #                 for k in self.commodities:
-        #                     model.addConstr(v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == gp.quicksum(w_plus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m_tilde.stage_id, k.commodity_id] for m_tilde in m.all_parents + [m] if m_tilde.name == "day ahead"), name=f"eq1g2[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
-
-        # if first_stage_constraint:
-        #     q_sales = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
-        #     q_production = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="q_production", lb=0.0)
-        #     v = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="v", lb=0.0)
-        #     w_plus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
-        #     w_minus = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, self.commodity_ids, name="w_minus", lb=0.0)
-        # else:
-        #     f = model.addVars(self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="f", lb=0.0)

@@ -1,9 +1,9 @@
 #!/bin/bash
 # Set Job Requirements
-#SBATCH -t 24:00:00
+#SBATCH -t 04:00:00
 #SBATCH --nodes=1
 #SBATCH --partition=genoa
-#SBATCH --array=1-66%30
+#SBATCH --array=1-11
 #SBATCH --out=slurm/slurm-%A_%a.out
 #SBATCH --mail-type=BEGIN,FAIL,END
 #SBATCH --mail-user=b.t.markhorst@student.vu.nl
