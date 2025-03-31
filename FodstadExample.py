@@ -1,3 +1,5 @@
+import copy
+
 from objects import *
 import pickle
 # from tqdm import tqdm
@@ -157,6 +159,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
 
 
     stages = []
+    production_hydrogen = {}
     for stage_id in range(1, nr_stage2_nodes + nr_stage3_nodes + 2):
         for hour_id in range(1, nr_hours + 1):
             id = (stage_id - 1) * nr_hours + hour_id
@@ -258,7 +261,8 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
             # Third stage!
             else:
                 for s in range(nr_scenarios_hydrogen):
-                    new_id = id + nr_scenarios_hydrogen * nr_hours * s
+                    new_id = id + nr_hours * nr_stage3_nodes * s
+                    production_hydrogen[new_id] = {}
 
                     if hour_id > 1:
                         parent_id = new_id - 1
@@ -268,14 +272,15 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
 
                     probability_hydrogen = hydrogen_uncertainty["Probability"].iloc[s]
 
-                    for node_name in hydrogen_uncertainty.columns[:2]:
-                        adjusted_node_name = node_name.capitalize()
+                    adjusted_node_names = {node_name.capitalize(): node_name for node_name in hydrogen_uncertainty.columns[:2]}
 
-                        for n in stage_nodes:
-                            if n.name.capitalize() == adjusted_node_name:
-                                n.production_hydrogen = hydrogen_uncertainty[node_name].iloc[s]
-                            else:
-                                n.production_hydrogen = 0
+                    for n in stage_nodes:
+                        if n.name.capitalize() in adjusted_node_names.keys():
+                            original_name = adjusted_node_names[n.name.capitalize()]
+                            production = hydrogen_uncertainty[original_name].iloc[s]
+                        else:
+                            production = 0
+                        production_hydrogen[new_id][n.node_id] = production
 
                     probability = probabilities3[stage_id - nr_stage2_nodes - 2] * probability_hydrogen
                     stage = Stage(new_id, "intra day", probability, stage_nodes, stage_arcs, parent, hour_id)
@@ -285,7 +290,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     markets = list(nodes_df[nodes_df["Type"] == "Market"]["Name"].values)
 
     # Problem object
-    problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict, markets)
+    problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict, markets, production_hydrogen)
 
     # Store problem object
     with open(f"{output_file}.pkl", "wb") as file:

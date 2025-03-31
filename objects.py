@@ -95,7 +95,7 @@ class Stage:
 class Problem:
     def __init__(self, digraph: nx.Graph, stages: List[Stage], traders: List[Trader], loss_rate: float,
                  commodities: List[Commodity], gamma: float, d_dict: Dict[Commodity, List[str]],
-                 markets: List[str]):
+                 markets: List[str], production_hydrogen: Dict):
         self.markets = markets
         self.digraph = digraph
         self.nodes = list(digraph.nodes)
@@ -125,6 +125,7 @@ class Problem:
         for k, d_all in self.d_dict.items():
             for d in d_all:
                 self.k_dict[d].append(k)
+        self.production_hydrogen = production_hydrogen
 
     def build_model(self, output_file, c1: float = 1, c2: float = 1, nodefiles: str = ""):
         start = time.time()
@@ -224,6 +225,7 @@ class Problem:
                             # Traders cannot book entry capacity at markets they're not active at!
                             model.addConstr(x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= 0, name=f"x_plus_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
+                            # One cannot sell at nodes that are not markets
                             if m in self.third_stages:
                                 for d in self.d_list:
                                     if n.name not in self.markets:
@@ -315,19 +317,18 @@ class Problem:
                 model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
 
         # Fix the production of hydrogen nodes
-        for t in self.traders:
-            for m in self.third_stages:
-                for n in m.nodes:
-                    for k in self.commodities:
-                        if k.name == "hydrogen":
-                            model.addConstr(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] == n.production_hydrogen, name=f"hydrogen_production[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
+        for m in self.third_stages:
+            for n in m.nodes:
+                for k in self.commodities:
+                    if k.name == "hydrogen":
+                        model.addConstr(sum(q_production[t.trader_id, n.node_id, m.stage_id, k.commodity_id] for t in self.traders) == self.production_hydrogen[m.stage_id][n.node_id], name=f"hydrogen_production[{n.node_id},{m.stage_id},{k.commodity_id}]")
 
         # Hydrogen:gas ratio cannot exceed 1:4
         for m in self.stages:
             for a in self.arc_ids:
                 hydrogen = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities if k.name == "hydrogen")
                 gas = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for k in self.commodities if k.name == "gas")
-                model.addConstr(hydrogen <= gas * 4)
+                model.addConstr(hydrogen <= gas * (1 / self.gamma))
 
         # TSO constraints
         # Equation 1b

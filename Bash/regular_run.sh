@@ -2,7 +2,7 @@
 # Set Job Requirements
 #SBATCH -t 04:00:00
 #SBATCH --nodes=1
-#SBATCH -n 64
+#SBATCH -n 32
 #SBATCH --partition=genoa
 #SBATCH --out=slurm/slurm-%A_%a.out
 #SBATCH --mail-type=BEGIN,FAIL,END
@@ -15,5 +15,4 @@ module load Gurobi/10.0.1-GCCcore-11.3.0
 
 export GRB_LICENSE_FILE="gurobi-2.lic"
 
-mkdir "$TMPDIR/experiment"
-python FodstadExample.py --input_file Data/OurData3.xlsx --output_file Results/regular_result_2  --nodefiles "$TMPDIR/experiment_$i"
+python FodstadExample.py --input_file Data/OurData3SanityCheck.xlsx --output_file Results/SanityCheck/first_try_v7_with_hydrogen
