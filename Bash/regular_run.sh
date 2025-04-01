@@ -1,6 +1,6 @@
 #!/bin/bash
 # Set Job Requirements
-#SBATCH -t 04:00:00
+#SBATCH -t 08:00:00
 #SBATCH --nodes=1
 #SBATCH -n 32
 #SBATCH --partition=genoa
@@ -15,4 +15,4 @@ module load Gurobi/10.0.1-GCCcore-11.3.0
 
 export GRB_LICENSE_FILE="gurobi-2.lic"
 
-python FodstadExample.py --input_file Data/OurData3SanityCheck.xlsx --output_file Results/SanityCheck/first_try_v7_with_hydrogen
+python FodstadExample.py --input_file Data/OurData3FullCheck.xlsx --output_file Results/FullCheck/with_hydrogen_with_storage

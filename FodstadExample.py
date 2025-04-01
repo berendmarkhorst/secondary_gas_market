@@ -35,6 +35,8 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     loss_rate = float(parameters_df[parameters_df["Name"] == "Loss rate"]["Value"].values[0])
     gamma = float(parameters_df[parameters_df["Name"] == "Gamma"]["Value"].values[0])
     nr_shippers = int(parameters_df[parameters_df["Name"] == "Number shippers"]["Value"].values[0])
+    increase_storage_stage2 = float(parameters_df[parameters_df["Name"] == "Increase storage costs stage 2"]["Value"].values[0])
+    increase_storage_stage3 = float(parameters_df[parameters_df["Name"] == "Increase storage costs stage 3"]["Value"].values[0])
 
     # Transfer the node data to a Networkx-object.
     nodes = []
@@ -193,7 +195,13 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
                 production_capacities_temp = {k: production_capacities[node, k.name] for k in commodities} # * int(name in shipper_df[t.name].values)
                 tso_entry_costs_temp = {k: tso_entry_costs[node, k.name] for k in commodities}
                 tso_exit_costs_temp = {k: tso_exit_costs[node, k.name] for k in commodities}
-                storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] for k in commodities for t in traders}
+                if stage_id == 1:
+                    increase_rate = 1
+                elif 1 < stage_id <= nr_stage2_nodes + 1:
+                    increase_rate = increase_storage_stage2
+                else:
+                    increase_rate = increase_storage_stage3
+                storage_costs_temp = {(t, k): storage_costs[t.trader_id, node, k.name] * increase_rate for k in commodities for t in traders}
                 storage_capacity_temp = {(t, k): storage_capacities[t.trader_id, node, k.name] for k in commodities for t in traders}
 
                 sales_prices = {}
@@ -311,7 +319,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     model.setParam('LogFile', f"{output_file}.log")
 
     # Set a maximum runtime of 10 hours
-    model.setParam('TimeLimit', 3600*3.5)
+    model.setParam('TimeLimit', 3600*7.5)
 
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")
