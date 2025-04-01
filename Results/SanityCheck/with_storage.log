@@ -1,0 +1,75 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Apr  1 11:05:24 2025
+
+Set parameter LogFile to value "Results/SanityCheck/with_storage.log"
+Set parameter TimeLimit to value 27000
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 2906592 rows, 3553248 columns and 13099120 nonzeros
+Model fingerprint: 0xffd2e535
+Coefficient statistics:
+  Matrix range     [1e+00, 4e+00]
+  Objective range  [3e-05, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-01, 1e+03]
+Presolve removed 1874000 rows and 2014832 columns (presolve time = 5s) ...
+Presolve removed 2330705 rows and 2485303 columns (presolve time = 10s) ...
+Presolve removed 2399858 rows and 2617181 columns
+Presolve time: 12.26s
+Presolved: 506734 rows, 936067 columns, 3348902 nonzeros
+
+Concurrent LP optimizer: dual simplex and barrier
+Showing barrier log only...
+
+Elapsed ordering time = 5s
+Elapsed ordering time = 6s
+Elapsed ordering time = 6s
+Ordering time: 6.32s
+
+Barrier performed 0 iterations in 19.73 seconds (8.49 work units)
+Barrier solve interrupted - model solved by another algorithm
+
+
+Solved with dual simplex
+Extra simplex iterations after uncrush: 3
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+   82440    8.3361499e+02   0.000000e+00   0.000000e+00     20s
+
+Use crossover to convert LP symmetric solution to basic solution...
+Crossover log...
+
+   38721 DPushes remaining with DInf 0.0000000e+00                22s
+       0 DPushes remaining with DInf 0.0000000e+00                23s
+
+     417 PPushes remaining with PInf 0.0000000e+00                23s
+       0 PPushes remaining with PInf 0.0000000e+00                23s
+
+  Push phase complete: Pinf 0.0000000e+00, Dinf 1.1584906e-11     23s
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+  118573    8.3361499e+02   0.000000e+00   1.703732e+05     27s
+  172046    8.3361499e+02   0.000000e+00   4.689584e+05     32s
+  180996    8.3367494e+02   0.000000e+00   6.275599e+05     35s
+  198159    8.3373641e+02   0.000000e+00   1.559664e+06     40s
+  213201    8.3379136e+02   0.000000e+00   1.604611e+06     49s
+  214448    8.3379770e+02   0.000000e+00   1.934601e+06     52s
+  217043    8.3380954e+02   0.000000e+00   1.105807e+06     56s
+  219364    8.3382095e+02   0.000000e+00   1.353204e+06     63s
+  221227    8.3382928e+02   0.000000e+00   1.277370e+06     66s
+  223058    8.3383633e+02   0.000000e+00   1.257634e+06     75s
+  224680    8.3384146e+02   0.000000e+00   2.031478e+06     84s
+  225491    8.3384384e+02   0.000000e+00   1.561921e+06     89s
+  226302    8.3384657e+02   0.000000e+00   1.813716e+06     94s
+  227113    8.3384880e+02   0.000000e+00   3.352382e+06    100s
+  227924    8.3385279e+02   0.000000e+00   1.289106e+06    104s
+  228735    8.3385573e+02   0.000000e+00   2.682033e+06    110s
+  229954    8.3386014e+02   0.000000e+00   2.146601e+06    119s
+  230765    8.3386317e+02   0.000000e+00   1.578197e+06    127s
+  231576    8.3386584e+02   0.000000e+00   1.753760e+06    141s
+  232387    8.3386884e+02   0.000000e+00   1.386890e+06    158s
+  233198    8.3387083e+02   0.000000e+00   3.028347e+06    167s
+  234009    8.3387338e+02   0.000000e+00   9.410179e+05    174s
+  234820    8.3387537e+02   0.000000e+00   1.062850e+06    181s

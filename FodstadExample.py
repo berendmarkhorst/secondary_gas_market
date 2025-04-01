@@ -297,6 +297,9 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
 
     markets = list(nodes_df[nodes_df["Type"] == "Market"]["Name"].values)
 
+    # Sort stages based on stage_id
+    stages = sorted(stages, key=lambda x: x.stage_id)
+
     # Problem object
     problem = Problem(digraph, stages, traders, loss_rate, commodities, gamma, d_dict, markets, production_hydrogen)
 
