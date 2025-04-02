@@ -193,6 +193,7 @@ class Problem:
                         model._entry_costs[m, n, t, k] = supplier_entry_costs
                         model._exit_costs[m, n, t, k] = supplier_exit_costs
 
+                        # Extra costs! Misschien later!
                         storage_rent_costs = z_bought[t.trader_id, n.node_id, m.stage_id] * n.storage_costs[(t, k)] - z_sold[t.trader_id, n.node_id, m.stage_id] * (n.storage_costs[(t, k)] - epsilon)
                         # storage_rent_costs = 0
 
@@ -351,6 +352,15 @@ class Problem:
                 storage_capacity_bought = gp.quicksum(z_bought[t.trader_id, n.node_id, m.stage_id] for t in self.traders)
                 storage_capacity_sold = gp.quicksum(z_sold[t.trader_id, n.node_id, m.stage_id] for t in self.traders)
                 model.addConstr(storage_capacity_bought == storage_capacity_sold, name=f"storage_capacity_bought[{n.node_id},{m.stage_id}]")
+
+        # # We set the storage trades within a stage equal to each other
+        # for m in self.stages:
+        #     for n in m.nodes:
+        #         for t in self.traders:
+        #             if m.parent is not None:
+        #                 if m.parent.name == m.name:
+        #                     model.addConstr(z_sold[t.trader_id, n.node_id, m.stage_id] == z_sold[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
+        #                     model.addConstr(z_bought[t.trader_id, n.node_id, m.stage_id] == z_bought[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
 
         # TSO constraints
         # Equation 1b

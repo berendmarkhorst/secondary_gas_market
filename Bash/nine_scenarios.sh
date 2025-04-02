@@ -15,4 +15,4 @@ module load Gurobi/10.0.1-GCCcore-11.3.0
 
 export GRB_LICENSE_FILE="gurobi-2.lic"
 
-python FodstadExample.py --input_file Data/OurData3SanityCheck.xlsx --output_file Results/FullCheck/with_hydrogen_with_storage_v4
+python FodstadExample.py --input_file Data/OurData3SanityCheckNineHydrogenScenarios.xlsx --output_file Results/FullCheck/with_nine_hydrogen_with_storage
