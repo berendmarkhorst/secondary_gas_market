@@ -127,7 +127,7 @@ class Problem:
                 self.k_dict[d].append(k)
         self.production_hydrogen = production_hydrogen
 
-    def build_model(self, output_file, c1: float = 1, c2: float = 1, nodefiles: str = ""):
+    def build_model(self, output_file, c1: float = 1, c2: float = 1, nodefiles: str = "", equality_constraint: bool = False):
         start = time.time()
 
         model = gp.Model("Stochastic Secondary Energy Market")
@@ -354,13 +354,14 @@ class Problem:
                 model.addConstr(storage_capacity_bought == storage_capacity_sold, name=f"storage_capacity_bought[{n.node_id},{m.stage_id}]")
 
         # # We set the storage trades within a stage equal to each other
-        # for m in self.stages:
-        #     for n in m.nodes:
-        #         for t in self.traders:
-        #             if m.parent is not None:
-        #                 if m.parent.name == m.name:
-        #                     model.addConstr(z_sold[t.trader_id, n.node_id, m.stage_id] == z_sold[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
-        #                     model.addConstr(z_bought[t.trader_id, n.node_id, m.stage_id] == z_bought[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
+        if equality_constraint:
+            for m in self.stages:
+                for n in m.nodes:
+                    for t in self.traders:
+                        if m.parent is not None:
+                            if m.parent.name == m.name:
+                                model.addConstr(z_sold[t.trader_id, n.node_id, m.stage_id] == z_sold[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
+                                model.addConstr(z_bought[t.trader_id, n.node_id, m.stage_id] == z_bought[t.trader_id, n.node_id, m.parent.stage_id], name=f"storage_equal[{n.node_id},{m.stage_id},{t.trader_id}]")
 
         # TSO constraints
         # Equation 1b

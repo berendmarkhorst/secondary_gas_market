@@ -6,7 +6,7 @@ import pickle
 import argparse
 
 
-def run_optimizer(input_file, output_file, c1, c2, nodefiles):
+def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constraint):
     column_fuels = ["Gas", "Hydrogen"]
 
     # Read the data from the Excel file
@@ -314,7 +314,7 @@ def run_optimizer(input_file, output_file, c1, c2, nodefiles):
     # Print how many scenario nodes the problem has
     print(f"Number of scenario nodes: {len(problem.stages)}")
 
-    model, vars = problem.build_model(output_file, c1=c1, c2=c2, nodefiles=nodefiles)
+    model, vars = problem.build_model(output_file, c1=c1, c2=c2, nodefiles=nodefiles, equality_constraint=equality_constraint)
     constraints = model.getConstrs()
 
     # Write gurobi output to file
@@ -342,6 +342,7 @@ if __name__ == "__main__":
     parser.add_argument("--nodefiles", type=str, default="", help="The output file.")
     parser.add_argument("--c1", type=float, default=None, help="Long term.")
     parser.add_argument("--c2", type=float, default=None, help="Day ahead.")
+    parser.add_argument("--equality_constraint", type=bool, default=False, help="Equality constraints.")
 
     run_optimizer(**vars(parser.parse_args()))
 
