@@ -324,7 +324,7 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
     # Set a maximum runtime of 10 hours
     model.setParam('TimeLimit', 3600*23.5)
 
-    model.write(f"{output_file}.mps")
+    # model.write(f"{output_file}.mps")
 
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")

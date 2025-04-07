@@ -15,4 +15,4 @@ module load Gurobi/10.0.1-GCCcore-11.3.0
 
 export GRB_LICENSE_FILE="gurobi-2.lic"
 
-python FodstadExample.py --input_file Data/OurData3SanityCheckOneHydrogenScenario.xlsx --output_file Results/FullCheck/with_one_hydrogen_with_storage
+python FodstadExample.py --input_file Data/OneScenario/BaseCaseOld.xlsx --output_file Results/OneScenarioExperiments/base_case --equality_constraint False
