@@ -7,6 +7,7 @@ import argparse
 
 
 def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constraint):
+    equality_constraint = bool(int(equality_constraint))
     column_fuels = ["Gas", "Hydrogen"]
 
     # Read the data from the Excel file
@@ -326,6 +327,10 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
 
     # model.write(f"{output_file}.mps")
 
+    # Set the optimization method to barrier and disable crossover
+    model.setParam('Method', 2)  # Use the barrier method
+    model.setParam('Crossover', 0)  # Turn off crossover
+
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")
 
@@ -342,7 +347,7 @@ if __name__ == "__main__":
     parser.add_argument("--nodefiles", type=str, default="", help="The output file.")
     parser.add_argument("--c1", type=float, default=None, help="Long term.")
     parser.add_argument("--c2", type=float, default=None, help="Day ahead.")
-    parser.add_argument("--equality_constraint", type=bool, default=False, help="Equality constraints.")
+    parser.add_argument("--equality_constraint", type=int, default=0, help="Equality constraints.")
 
     run_optimizer(**vars(parser.parse_args()))
 

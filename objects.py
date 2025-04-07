@@ -163,7 +163,7 @@ class Problem:
             delta = model.addVars(["long term", "day ahead"], ["Entry", "Exit"], ["Plus", "Minus"], self.node_ids, self.third_stage_ids, self.trader_ids, self.commodity_ids, name="delta", lb=0.0) # Stage, plus/minus
         labda = model.addVars(["Entry", 'Exit'], self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="labda", lb=0.0) # Entry/exit
         f = model.addVars(self.trader_ids, self.arc_ids, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
-        q_sales = model.addVars(self.trader_ids, self.node_ids, self.second_stage_ids + self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
+        q_sales = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
         q_production = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="q_production", lb=0.0)
         v = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="v", lb=0.0)
         w_plus = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, name="w_plus", lb=0.0)
@@ -232,7 +232,7 @@ class Problem:
                             model.addConstr(x_plus[n.node_id, m.stage_id, t.trader_id, k.commodity_id] <= 0, name=f"x_plus_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
                             # One cannot sell at nodes that are not markets!
-                            if m in self.second_stages + self.third_stages:
+                            if m in self.third_stages:
                                 for d in self.d_list:
                                     if n.name not in self.markets:
                                         model.addConstr(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] <= 0, name=f"sales_bounds[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id},{d}]")
@@ -353,7 +353,7 @@ class Problem:
                 storage_capacity_sold = gp.quicksum(z_sold[t.trader_id, n.node_id, m.stage_id] for t in self.traders)
                 model.addConstr(storage_capacity_bought == storage_capacity_sold, name=f"storage_capacity_bought[{n.node_id},{m.stage_id}]")
 
-        # # We set the storage trades within a stage equal to each other
+        # We set the storage trades within a stage equal to each other
         if equality_constraint:
             for m in self.stages:
                 for n in m.nodes:
@@ -389,11 +389,11 @@ class Problem:
                         model.addConstr(lhs == rhs, name=f"eq1d[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1e
-        for m in self.second_stages + self.third_stages:
+        for m in self.third_stages:
             for n in m.nodes:
                 for t in self.traders:
                     for k in self.commodities:
-                        model.addConstr(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]),
+                        model.addConstr(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] for d in self.d_dict[k]) + w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] - w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id],
                                         name=f"eq1e[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         # Equation 1f
@@ -422,7 +422,7 @@ class Problem:
 
         # Capacity market constraints
         # Equation 1i
-        for m in self.second_stages + self.third_stages:
+        for m in self.third_stages:
             for n in m.nodes:
                 for d in self.d_list:
                     for t in self.traders:
@@ -448,7 +448,8 @@ class Problem:
         model.update()
 
         vars = {"x_plus": x_plus, "x_minus": x_minus, "y_plus": y_plus, "y_minus": y_minus, "s_plus": s_plus, "s_minus": s_minus,
-                "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus}
+                "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus,
+                "z_bought": z_bought, "z_sold": z_sold}
 
         end_time = time.time()
         print(f"Model building took {end_time - start} seconds.")
