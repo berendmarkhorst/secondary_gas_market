@@ -331,6 +331,9 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
     model.setParam('Method', 2)  # Use the barrier method
     model.setParam('Crossover', 0)  # Turn off crossover
 
+    # Set Bar Conv Tol to 1e-10
+    model.setParam('BarConvTol', 1e-10)
+
     model.optimize()
     problem.save_solution(vars, constraints, f"{output_file}")
 

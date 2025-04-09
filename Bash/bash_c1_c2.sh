@@ -1,9 +1,10 @@
 #!/bin/bash
 # Set Job Requirements
-#SBATCH -t 04:00:00
+#SBATCH -t 24:00:00
 #SBATCH --nodes=1
+#SBATCH -n 16
 #SBATCH --partition=genoa
-#SBATCH --array=1-11
+#SBATCH --array=1-66%30
 #SBATCH --out=slurm/slurm-%A_%a.out
 #SBATCH --mail-type=BEGIN,FAIL,END
 #SBATCH --mail-user=b.t.markhorst@student.vu.nl
@@ -16,5 +17,4 @@ module load Gurobi/10.0.1-GCCcore-11.3.0
 export GRB_LICENSE_FILE="gurobi-2.lic"
 
 i=${SLURM_ARRAY_TASK_ID}
-mkdir "$TMPDIR/experiment_$i"
-$(head -$i Parameters/parameters_c1_c2.txt | tail -1)  --nodefiles "$TMPDIR/experiment_$i"
+$(head -$i Parameters/parameters_c1_c2.txt | tail -1)

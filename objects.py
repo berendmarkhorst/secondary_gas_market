@@ -161,6 +161,8 @@ class Problem:
         if c1 is not None and c2 is not None:
             gamma = model.addVars(["long term", "day ahead"], ["Plus", "Minus"], self.trader_ids, self.arc_ids, self.third_stage_ids, self.commodity_ids, name="gamma", lb=0.0) # Stage, plus/minus
             delta = model.addVars(["long term", "day ahead"], ["Entry", "Exit"], ["Plus", "Minus"], self.node_ids, self.third_stage_ids, self.trader_ids, self.commodity_ids, name="delta", lb=0.0) # Stage, plus/minus
+            kappa = model.addVars(self.trader_ids, self.node_ids, self.stage_ids, name="kappa", lb=0.0)
+            kappa_difference = model.addVars(["long term", "day ahead"], ["Plus", "Minus"], self.trader_ids, self.node_ids, self.third_stage_ids, name="kappa_difference", lb=0.0)
         labda = model.addVars(["Entry", 'Exit'], self.node_ids, self.stage_ids, self.trader_ids, self.commodity_ids, name="labda", lb=0.0) # Entry/exit
         f = model.addVars(self.trader_ids, self.arc_ids, self.stage_ids, self.commodity_ids, name="f", lb=0.0)
         q_sales = model.addVars(self.trader_ids, self.node_ids, self.third_stage_ids, self.commodity_ids, self.d_list, name="q_sales", lb=0.0)
@@ -204,7 +206,7 @@ class Problem:
 
                             # For now, we try something else with storage costs!
                             # storage_costs = w_plus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * n.storage_costs[(t, k)] + v[t.trader_id, n.node_id, m.stage_id, k.commodity_id] * epsilon
-                            storage_costs = 0
+                            storage_costs = (w_minus[t.trader_id, n.node_id, m.stage_id, k.commodity_id] + v[t.trader_id, n.node_id, m.stage_id, k.commodity_id]) * epsilon
 
                             flow_costs = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] * m.get_arc(a).arc_costs[k] for a in self.incoming_arcs[n.node_id])
                             sales = gp.quicksum(q_sales[t.trader_id, n.node_id, m.stage_id, k.commodity_id, d] * n.sales_prices[t, d] for d in self.d_dict[k])
@@ -254,6 +256,27 @@ class Problem:
                                                     m_tilde.hour == m.hour), name=f"dummy_entry[{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
         if c1 is not None and c2 is not None:
+            # Define kappa
+            for m in self.stages:
+                for n in m.nodes:
+                    for t in self.traders:
+                        LHS = gp.quicksum(z_bought[t.trader_id, n.node_id, m_tilde.stage_id] - z_sold[t.trader_id, n.node_id, m_tilde.stage_id] for m_tilde in m.all_parents + [m] if m_tilde.hour == m.hour)
+                        RHS = kappa[t.trader_id, n.node_id, m.stage_id]
+                        model.addConstr(LHS == RHS, name=f"dummy_kappa[{n.node_id},{m.stage_id},{t.trader_id}]")
+
+            for i in ["long term", "day ahead"]:
+                for m in self.third_stages:
+                    for n in m.nodes:
+                        for t in self.traders:
+                            rhs = kappa[t.trader_id, n.node_id, m.stage_id]
+
+                            # First stage equivalent
+                            m_tilde = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour][0]
+                            lhs = kappa[t.trader_id, n.node_id, m_tilde.stage_id]
+
+                            model.addConstr(kappa_difference[i, "Plus", t.trader_id, n.node_id, m.stage_id] >= lhs - rhs, name=f"dummy_kappa_plus[{i},{t.trader_id},{n.node_id},{m.stage_id}]")
+                            model.addConstr(kappa_difference[i, "Minus", t.trader_id, n.node_id, m.stage_id] >= rhs - lhs, name=f"dummy_kappa_plus[{i},{t.trader_id},{n.node_id},{m.stage_id}]")
+
             # Define gamma constraint
             for i in ["long term", "day ahead"]:
                 for m in self.third_stages:
@@ -286,6 +309,10 @@ class Problem:
                                     model.addConstr(delta[i, e, "Minus", n.node_id, m.stage_id, t.trader_id, k.commodity_id] >= rhs - lhs, name=f"dummy_delta[{i},{e},{n.node_id},{m.stage_id},{t.trader_id},{k.commodity_id}]")
 
             # Put a limit on the change of the decision variables from first to third and second to third stage
+            delta_entry_coeffs = {}
+            delta_exit_coeffs = {}
+            gamma_coeffs = {}
+            kappa_coeffs = {}
             for i, c in zip(["long term", "day ahead"], [c1, c2]):
                 # for m in self.third_stages:
                 #     # First stage equivalent
@@ -304,25 +331,45 @@ class Problem:
                 #                 for k in self.commodities:
                 #                     for s in ["Plus", "Minus"]:
                 #                         model.addConstr(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id] <= c * f[t.trader_id, a, m_tilde.stage_id, k.commodity_id], name=f"gamma_limit_{i}")
-
-                delta_coeff = gp.quicksum(delta[i, e, s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
-                                            for e in ["Entry", "Exit"]
+                delta_entry_coeffs[i] = {}
+                delta_exit_coeffs[i] = {}
+                gamma_coeffs[i] = {}
+                kappa_coeffs[i] = {}
+                for m in self.third_stages:
+                    delta_entry_coeffs[i][m] = gp.quicksum(delta[i, "Entry", s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
                                             for s in ["Plus", "Minus"]
-                                            for m in self.third_stages
                                             for n in m.nodes
                                             for t in self.traders
                                             for k in self.commodities)
-                gamma_coeff = gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id]
-                                            for s in ["Plus", "Minus"]
-                                            for t in self.traders
-                                            for a in self.arc_ids
-                                            for m in self.third_stages
-                                            for k in self.commodities)
-                rhs_flow = gp.quicksum(f[t.trader_id, a, m.stage_id, k.commodity_id] for t in self.traders for a in self.arc_ids for m in self.first_stages for k in self.commodities)
-                rhs_plus = gp.quicksum(labda["Entry", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
-                rhs_minus = gp.quicksum(labda["Exit", n.node_id, m.stage_id, t.trader_id, k.commodity_id] for m in self.first_stages for n in m.nodes for t in self.traders for k in self.commodities)
-                rhs = rhs_flow + rhs_plus + rhs_minus
-                model.addConstr(delta_coeff + gamma_coeff <= c * rhs, name=f"delta_limit_{i}")
+                    delta_exit_coeffs[i][m] = gp.quicksum(
+                                                delta[i, "Exit", s, n.node_id, m.stage_id, t.trader_id, k.commodity_id]
+                                                for s in ["Plus", "Minus"]
+                                                for n in m.nodes
+                                                for t in self.traders
+                                                for k in self.commodities)
+                    gamma_coeffs[i][m] = gp.quicksum(gamma[i, s, t.trader_id, a, m.stage_id, k.commodity_id]
+                                                for s in ["Plus", "Minus"]
+                                                for t in self.traders
+                                                for a in self.arc_ids
+                                                for k in self.commodities)
+                    kappa_coeffs[i][m] = gp.quicksum(kappa_difference[i, s, t.trader_id, n.node_id, m.stage_id]
+                                                for s in ["Plus", "Minus"]
+                                                for t in self.traders
+                                                for n in m.nodes)
+                    # Find the direct parent of the current stage
+                    candidate_parents = [parent for parent in m.all_parents if parent.name == i and parent.hour == m.hour]
+                    assert len(candidate_parents) == 1
+                    m_tilde = candidate_parents[0]
+
+                    rhs_flow = gp.quicksum(f[t.trader_id, a, m_tilde.stage_id, k.commodity_id] for t in self.traders for a in self.arc_ids for k in self.commodities)
+                    rhs_entry = gp.quicksum(labda["Entry", n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for n in m_tilde.nodes for t in self.traders for k in self.commodities)
+                    rhs_exit = gp.quicksum(labda["Exit", n.node_id, m_tilde.stage_id, t.trader_id, k.commodity_id] for n in m_tilde.nodes for t in self.traders for k in self.commodities)
+                    rhs_kappa = gp.quicksum(kappa[t.trader_id, n.node_id, m_tilde.stage_id] for n in m_tilde.nodes for t in self.traders)
+
+                    model.addConstr(delta_entry_coeffs[i][m] <= c * rhs_entry, name=f"delta_limit_entry_{i}")
+                    model.addConstr(delta_exit_coeffs[i][m] <= c * rhs_exit, name=f"delta_limit_exit_{i}")
+                    model.addConstr(gamma_coeffs[i][m] <= c * rhs_flow, name=f"gamma_limit_{i}")
+                    model.addConstr(kappa_coeffs[i][m] <= c * rhs_kappa, name=f"kappa_limit_{i}")
 
         # Fix the production of hydrogen nodes
         for m in self.third_stages:
@@ -449,7 +496,18 @@ class Problem:
 
         vars = {"x_plus": x_plus, "x_minus": x_minus, "y_plus": y_plus, "y_minus": y_minus, "s_plus": s_plus, "s_minus": s_minus,
                 "f": f, "q_sales": q_sales, "q_production": q_production, "v": v, "w_plus": w_plus, "w_minus": w_minus,
-                "z_bought": z_bought, "z_sold": z_sold}
+                "z_bought": z_bought, "z_sold": z_sold, "labda": labda}
+
+        if c1 is not None and c2 is not None:
+            vars["gamma"] = gamma
+            vars["delta"] = delta
+            vars["original_kappa"] = kappa
+            vars["kappa_difference"] = kappa_difference
+        #
+        # if c1 is not None and c2 is not None:
+        #     lin_expr = {"delta_entry_coeffs": delta_entry_coeffs, "delta_exit_coeffs": delta_exit_coeffs, "gamma_coeffs": gamma_coeffs, "kappa_coeffs": kappa_coeffs}
+        # else:
+        #     lin_expr = None
 
         end_time = time.time()
         print(f"Model building took {end_time - start} seconds.")
