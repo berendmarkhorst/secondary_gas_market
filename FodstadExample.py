@@ -222,7 +222,7 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
                             extra = -3
                         elif (stage_id - nr_stage2_nodes - 2) % 4 == 3:
                             extra = -3
-                    elif name.capitalize() == "Zeebrugge" and (hour_id <= 4 or 6 <= hour_id <= 7):
+                    elif name.capitalize() == "Dunkerque" and (hour_id <= 4 or 6 <= hour_id <= 7): # "Zeebrugge"
                         if (stage_id - nr_stage2_nodes - 2) % 4 == 0:
                             extra = 2
                         elif (stage_id - nr_stage2_nodes - 2) % 4 == 1:
@@ -235,12 +235,20 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
                         extra = 0
 
                     if name in gas_sales_df.columns:
-                        sales_prices[(t, 1)] = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] + extra
+                        if ("Shell" in t.name and name.capitalize() == "Zeebrugge") or ("Shell" in t.name and name.capitalize() == "Dunkerque") or ("Equinor" in t.name and name.capitalize() == "Emden") or ("Equinor" in t.name and name.capitalize() == "Dornum"):
+                            price = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] - 1
+                        else:
+                            price = gas_sales_df[gas_sales_df["Hour"] == hour_id][node].values[0] + extra
+                        sales_prices[(t, 1)] = price
                     else:
                         sales_prices[(t, 1)] = 0
 
                     if name in hydrogen_sales_df.columns:
-                        sales_prices[(t, "pure_hydrogen")] = hydrogen_sales_df[hydrogen_sales_df["Hour"] == hour_id][node].values[0] + extra
+                        # if ("Shell" in t.name and name.capitalize() == "Dunkerque") or ("Equinor" in t.name and name.capitalize() == "Emden") or ("Equinor" in t.name and name.capitalize() == "Dornum"):
+                        #     price = hydrogen_sales_df[hydrogen_sales_df["Hour"] == hour_id][node].values[0] - 1
+                        # else:
+                        price = hydrogen_sales_df[hydrogen_sales_df["Hour"] == hour_id][node].values[0] + extra
+                        sales_prices[(t, "pure_hydrogen")] = price
                     else:
                         sales_prices[(t, "pure_hydrogen")] = 0
 
@@ -328,8 +336,11 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
     # model.write(f"{output_file}.mps")
 
     # Set the optimization method to barrier and disable crossover
-    model.setParam('Method', 2)  # Use the barrier method
+    model.setParam('Method', 2)  # Use the barrier (or simplex) method
     model.setParam('Crossover', 0)  # Turn off crossover
+
+    # Set BarHomogeneous to 1
+    model.setParam('BarHomogeneous', 1)
 
     # Set Bar Conv Tol to 1e-10
     model.setParam('BarConvTol', 1e-10)

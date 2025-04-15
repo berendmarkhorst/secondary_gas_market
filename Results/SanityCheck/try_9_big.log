@@ -1,0 +1,87 @@
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Apr 15 14:54:49 2025
+
+Set parameter LogFile to value "Results/SanityCheck/try_9_big.log"
+Set parameter TimeLimit to value 84600
+Set parameter Method to value 2
+Set parameter Crossover to value 0
+Set parameter BarHomogeneous to value 1
+Set parameter BarConvTol to value 1e-10
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 1496320 rows, 1917920 columns and 7073808 nonzeros
+Model fingerprint: 0x8d586356
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+00]
+  Objective range  [6e-05, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 1167936 rows and 1246400 columns (presolve time = 5s) ...
+Presolve removed 1231968 rows and 1423520 columns
+Presolve time: 7.94s
+Presolved: 264352 rows, 494496 columns, 1755136 nonzeros
+
+Barrier solved model in 0 iterations and 8.37 seconds
+Model is infeasible or unbounded
+
+Gurobi 11.0.3 (mac64[x86]) logging started Tue Apr 15 14:57:36 2025
+
+Set parameter LogFile to value "Results/SanityCheck/try_9_big.log"
+Set parameter TimeLimit to value 84600
+Set parameter Method to value 2
+Set parameter Crossover to value 0
+Set parameter BarHomogeneous to value 1
+Set parameter BarConvTol to value 1e-10
+Gurobi Optimizer version 11.0.3 build v11.0.3rc0 (mac64[x86] - Darwin 23.4.0 23E214)
+
+CPU model: Intel(R) Core(TM) i7-1060NG7 CPU @ 1.20GHz
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+
+Optimize a model with 1496320 rows, 1917920 columns and 7073808 nonzeros
+Model fingerprint: 0xa7c29e69
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+00]
+  Objective range  [6e-05, 5e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e-02, 1e+03]
+Presolve removed 1231968 rows and 1423520 columns
+Presolve time: 4.90s
+Presolved: 264352 rows, 494496 columns, 1755136 nonzeros
+Ordering time: 0.01s
+
+Barrier statistics:
+ AA' NZ     : 2.483e+04
+ Factor NZ  : 9.776e+04 (roughly 7 MB of memory)
+ Factor Ops : 2.023e+06 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   5.95134285e+05  7.08182818e+07  4.15e+02 6.31e+03  8.99e+05     5s
+   1  -3.76534640e+05  7.77831784e+07  7.64e+01 4.93e+03  2.12e+05     5s
+   2  -4.55892767e+05  4.86471378e+07  5.57e+00 6.52e+02  2.99e+04     5s
+   3  -4.42344151e+05  1.41242589e+07  4.40e-02 4.00e+01  2.53e+03     5s
+   4  -3.26749742e+05  2.10010576e+05  1.69e-03 1.50e+00  8.53e+01     5s
+   5  -3.02111339e+04  7.12073581e+04  2.93e-04 3.05e-01  1.33e+01     5s
+   6   1.38046515e+04  4.24686583e+04  8.77e-05 6.98e-02  3.10e+00     5s
+   7   2.88255479e+04  3.46919492e+04  1.48e-05 1.69e-02  6.74e-01     5s
+   8   3.15100734e+04  3.24030995e+04  2.20e-06 2.73e-03  9.88e-02     5s
+   9   3.19178943e+04  3.21886868e+04  5.82e-07 9.20e-04  2.84e-02     5s
+  10   3.20441272e+04  3.21268903e+04  1.52e-07 3.74e-04  8.26e-03     5s
+  11   3.20820530e+04  3.21042502e+04  3.79e-08 1.13e-04  2.02e-03     5s
+  12   3.20952828e+04  3.20995183e+04  5.35e-09 3.76e-05  3.79e-04     5s
+  13   3.20968948e+04  3.20986549e+04  2.14e-09 1.40e-05  1.48e-04     5s
+  14   3.20977261e+04  3.20983080e+04  6.75e-10 5.12e-06  4.92e-05     5s
+  15   3.20979226e+04  3.20981360e+04  5.19e-10 3.79e-07  1.51e-05     5s
+  16   3.20981025e+04  3.20981250e+04  4.83e-11 9.15e-08  1.69e-06     5s
+  17   3.20981143e+04  3.20981209e+04  1.90e-11 7.74e-08  4.61e-07     5s
+  18   3.20981150e+04  3.20981205e+04  1.23e-10 1.36e-07  3.70e-07     5s
+  19   3.20981202e+04  3.20981205e+04  5.49e-10 2.48e-09  1.68e-08     5s
+  20   3.20981205e+04  3.20981205e+04  2.13e-09 3.21e-11  2.06e-11     5s
+
+Barrier solved model in 20 iterations and 5.31 seconds (3.52 work units)
+Optimal objective 3.20981205e+04
+
