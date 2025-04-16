@@ -6,8 +6,9 @@ import pickle
 import argparse
 
 
-def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constraint):
+def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constraint, crossover, contracts):
     equality_constraint = bool(int(equality_constraint))
+    crossover = bool(int(crossover))
     column_fuels = ["Gas", "Hydrogen"]
 
     # Read the data from the Excel file
@@ -107,7 +108,7 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
                 for hour in range(nr_hours):
                     for node in digraph.nodes():
                         if node in demand_df.columns:
-                            demand = demand_df.at[hour, node]
+                            demand = demand_df.at[hour, node] * contracts
                         else:
                             demand = 0
                         node_demands[(stage_node, hour, node, idx_d + 1)] = demand
@@ -337,7 +338,8 @@ def run_optimizer(input_file, output_file, nodefiles, c1, c2, equality_constrain
 
     # Set the optimization method to barrier and disable crossover
     model.setParam('Method', 2)  # Use the barrier (or simplex) method
-    model.setParam('Crossover', 0)  # Turn off crossover
+    if not crossover:
+        model.setParam('Crossover', 0)  # Turn off crossover
 
     # Set BarHomogeneous to 1
     model.setParam('BarHomogeneous', 1)
@@ -362,6 +364,8 @@ if __name__ == "__main__":
     parser.add_argument("--c1", type=float, default=None, help="Long term.")
     parser.add_argument("--c2", type=float, default=None, help="Day ahead.")
     parser.add_argument("--equality_constraint", type=int, default=0, help="Equality constraints.")
+    parser.add_argument("--crossover", type=int, default=0, help="Crossover.")
+    parser.add_argument("--contracts", type=float, default=1, help="Contracts.")
 
     run_optimizer(**vars(parser.parse_args()))
 
