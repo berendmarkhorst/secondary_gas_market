@@ -1,17 +1,41 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite the following article."
-type: article
+message: "If you use this software, please cite it as below."
 title: "Optimizing gas entry-exit capacity utilization under uncertainty"
+abstract: "Data for optimizing gas entry-exit capacity utilization under uncertainty"
 authors:
   - family-names: Markhorst
     given-names: Berend
+    orcid: "https://orcid.org/0000-0002-3383-6862"
   - family-names: Buijs
-    given-names: Ruurd
+    given-names: Ruurd"
   - family-names: Egging-Bratseth
     given-names: Ruud
+    orcid: "https://orcid.org/0000-0002-5061-636X"
   - family-names: Van der Mei
     given-names: Rob
-journal: "Computational Management Science"
-year: 2026
-publisher: "Springer"
-url: "https://link.springer.com/journal/10287"
+    orcid: "https://orcid.org/0000-0002-5685-5310"
+type: software
+version: "1.0.0"
+date-released: "2026-01-14"
+license: MIT
+repository-code: "https://github.com/username/secondary_gas_market"
+preferred-citation:
+  type: article
+  title: "Optimizing gas entry-exit capacity utilization under uncertainty"
+  authors:
+    - family-names: Markhorst
+      given-names: Berend
+      orcid: "https://orcid.org/0000-0002-3383-6862"
+    - family-names: Buijs
+      given-names: Ruurd
+    - family-names: Egging-Bratseth
+      given-names: Ruud
+      orcid: "https://orcid.org/0000-0002-5061-636X"
+    - family-names: Van der Mei
+      given-names: Rob
+      orcid: "https://orcid.org/0000-0002-5685-5310"
+  journal: "Computational Management Science"
+  year: 2026
+  publisher: "Springer"
+  doi: "TBA"
+  url: "https://doi.org/TBA"
