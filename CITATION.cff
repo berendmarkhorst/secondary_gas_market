@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the following article."
+type: article
+title: "Optimizing gas entry-exit capacity utilization under uncertainty"
+authors:
+  - family-names: Markhorst
+    given-names: Berend
+  - family-names: Buijs
+    given-names: Ruurd
+  - family-names: Egging-Bratseth
+    given-names: Ruud
+  - family-names: Van der Mei
+    given-names: Rob
+journal: "Computational Management Science"
+year: 2026
+publisher: "Springer"
+url: "https://link.springer.com/journal/10287"
