@@ -1,2 +1,0 @@
-python FodstadExample.py --input_file Data/OneScenario/SanityCheckBig.xlsx --output_file Results/Experiment3/with_equality_constraint --equality_constraint 1
-python FodstadExample.py --input_file Data/OneScenario/SanityCheckBig.xlsx --output_file Results/Experiment3/without_equality_constraint --equality_constraint 0
